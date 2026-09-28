@@ -65,6 +65,8 @@ export const SCHEMA_V1 = `
 
   CREATE UNIQUE INDEX IF NOT EXISTS training_sessions_single_in_progress_idx
     ON training_sessions ((1)) WHERE status = 'in_progress';
+  CREATE UNIQUE INDEX IF NOT EXISTS training_sessions_single_draft_idx
+    ON training_sessions ((1)) WHERE status = 'draft';
 
   CREATE TABLE IF NOT EXISTS session_exercises (
     id TEXT PRIMARY KEY NOT NULL,

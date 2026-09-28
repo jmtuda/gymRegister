@@ -19,6 +19,10 @@ function createDatabase(): { sqlite: DatabaseSync; database: Database } {
       (sqlite.prepare(sql).get(...params as SQLInputValue[]) as T | undefined) ?? null,
     getAllAsync: async <T>(sql: string, ...params: unknown[]) =>
       sqlite.prepare(sql).all(...params as SQLInputValue[]) as T[],
+    withExclusiveTransactionAsync: async (task) => {
+      sqlite.exec('BEGIN');
+      try { await task(database); sqlite.exec('COMMIT'); } catch (error) { sqlite.exec('ROLLBACK'); throw error; }
+    },
   };
   return { sqlite, database };
 }
