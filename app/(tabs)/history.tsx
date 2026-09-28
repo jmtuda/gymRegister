@@ -1,5 +1,5 @@
-import { PlaceholderScreen } from '@/features/shared/PlaceholderScreen';
+import { HistoryScreen } from '@/features/history/HistoryScreen';
 
 export default function HistoryRoute() {
-  return <PlaceholderScreen title="Historial" description="Aquí aparecerán tus sesiones completadas." />;
+  return <HistoryScreen />;
 }

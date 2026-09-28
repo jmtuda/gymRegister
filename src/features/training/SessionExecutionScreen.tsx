@@ -6,13 +6,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import { createUuid } from '../../domain/id.ts';
-import type { PerformedSet, SessionExercise, LoadMode } from '../../domain/training.ts';
+import type { PerformedSet, SessionExercise, LoadMode, TrainingSession } from '../../domain/training.ts';
+import { createHistoryRepository } from '../../data/historyRepository.ts';
 import { createManualSessionRepository } from '../../data/manualSessionRepository.ts';
 import { createSessionExecutionRepository } from '../../data/sessionExecutionRepository.ts';
 import { labelForOption } from '../exercises/catalogPresentation.ts';
 import { INITIAL_REST_TIMER, restTimerReducer } from './restTimer.ts';
 
-type Props = { items: SessionExercise[]; onAddExercise: () => void; onRefresh: () => Promise<void> };
+type Props = {
+  session: TrainingSession;
+  items: SessionExercise[];
+  onAddExercise: () => void;
+  onRefresh: () => Promise<void>;
+  onCompleted: () => Promise<void>;
+};
 type Context = Awaited<ReturnType<ReturnType<typeof createSessionExecutionRepository>['getExecutionContext']>>;
 type SetForm = {
   attemptId: string; editingId: string | null; dose: string; load: string;
@@ -33,15 +40,19 @@ function formatSet(value: PerformedSet) {
     .filter(Boolean).join(' · ');
 }
 
-export function SessionExecutionScreen({ items, onAddExercise, onRefresh }: Props) {
+export function SessionExecutionScreen({ session, items, onAddExercise, onRefresh, onCompleted }: Props) {
   const database = useSQLiteContext();
   const execution = useMemo(() => createSessionExecutionRepository(database), [database]);
   const sessions = useMemo(() => createManualSessionRepository(database), [database]);
+  const history = useMemo(() => createHistoryRepository(database), [database]);
   const [sets, setSets] = useState<Record<string, PerformedSet[]>>({});
   const [activeId, setActiveId] = useState<string | null>(items[0]?.id ?? null);
   const [context, setContext] = useState<Context | null>(null);
   const [form, setForm] = useState<SetForm | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [finishOpen, setFinishOpen] = useState(false);
+  const [finalNote, setFinalNote] = useState(session.note ?? '');
+  const [finishing, setFinishing] = useState(false);
   const [timer, dispatchTimer] = useReducer(restTimerReducer, INITIAL_REST_TIMER);
 
   const loadSets = useCallback(async () => {
@@ -113,6 +124,17 @@ export function SessionExecutionScreen({ items, onAddExercise, onRefresh }: Prop
     [ids[index], ids[target]] = [ids[target], ids[index]];
     await sessions.reorderExercises(items[index].sessionId, ids); await onRefresh();
   };
+  const finish = async () => {
+    if (finishing) return;
+    setFinishing(true);
+    try {
+      await history.completeSession(session.id, finalNote);
+      setFinishOpen(false);
+      await onCompleted();
+    } catch (reason) {
+      Alert.alert('No se pudo finalizar', reason instanceof Error ? reason.message : 'Error inesperado.');
+    } finally { setFinishing(false); }
+  };
 
   return (
     <>
@@ -144,6 +166,7 @@ export function SessionExecutionScreen({ items, onAddExercise, onRefresh }: Prop
             </Pressable>
           );
         })}
+        <Pressable style={styles.finishButton} onPress={() => setFinishOpen(true)}><Text style={styles.finishButtonText}>Finalizar sesión</Text></Pressable>
       </ScrollView>
 
       <Modal visible={form !== null} animationType="slide" onRequestClose={() => setForm(null)}>
@@ -159,6 +182,27 @@ export function SessionExecutionScreen({ items, onAddExercise, onRefresh }: Prop
           </ScrollView>}
         </SafeAreaView>
       </Modal>
+
+      <Modal visible={finishOpen} transparent animationType="fade" onRequestClose={() => setFinishOpen(false)}>
+        <View style={styles.confirmBackdrop}>
+          <View style={styles.confirmCard}>
+            <Text style={styles.confirmTitle}>Finalizar sesión</Text>
+            <Text style={styles.confirmText}>La sesión quedará cerrada y aparecerá en Historial.</Text>
+            <Text style={styles.label}>Nota final (opcional)</Text>
+            <TextInput
+              multiline style={[styles.input, styles.finalNote]} value={finalNote}
+              placeholder="Añade una nota sobre la sesión…" placeholderTextColor="#94a3b8"
+              onChangeText={setFinalNote}
+            />
+            <View style={styles.confirmActions}>
+              <Pressable disabled={finishing} onPress={() => setFinishOpen(false)}><Text style={styles.link}>Cancelar</Text></Pressable>
+              <Pressable disabled={finishing} style={[styles.finishConfirm, finishing && styles.disabledButton]} onPress={() => void finish()}>
+                <Text style={styles.finishButtonText}>{finishing ? 'Finalizando…' : 'Confirmar finalización'}</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 }
@@ -166,5 +210,7 @@ export function SessionExecutionScreen({ items, onAddExercise, onRefresh }: Prop
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#f8fafc' }, content: { gap: 12, padding: 16, paddingBottom: 48 }, timerCard: { alignItems: 'center', backgroundColor: '#ecfeff', borderRadius: 16, flexDirection: 'row', justifyContent: 'space-between', padding: 14 }, timerTitle: { color: '#155e75', fontWeight: '700' }, timerValue: { color: '#0e7490', fontSize: 28, fontWeight: '800' }, timerActions: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end', maxWidth: '70%' }, smallButton: { backgroundColor: '#cffafe', borderRadius: 8, padding: 8 }, smallButtonText: { color: '#155e75', fontWeight: '700' },
   primaryButton: { alignItems: 'center', backgroundColor: '#0e7490', borderRadius: 12, padding: 14 }, primaryButtonText: { color: '#fff', fontSize: 16, fontWeight: '800' }, exerciseCard: { backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: 16, borderWidth: 1, padding: 14 }, exerciseCardActive: { borderColor: '#0891b2', borderWidth: 2 }, exerciseHeader: { alignItems: 'center', flexDirection: 'row' }, exerciseTitleArea: { flex: 1 }, exerciseTitle: { color: '#0f172a', fontSize: 17, fontWeight: '800' }, configuration: { color: '#475569', marginTop: 3 }, selection: { color: '#0e7490', fontSize: 12, marginTop: 5 }, orderButtons: { flexDirection: 'row', gap: 14, marginLeft: 10 }, arrow: { color: '#0e7490', fontSize: 22, fontWeight: '800' }, disabled: { color: '#cbd5e1' }, exerciseBody: { borderTopColor: '#e2e8f0', borderTopWidth: 1, marginTop: 12, paddingTop: 10 }, setRow: { alignItems: 'center', borderBottomColor: '#f1f5f9', borderBottomWidth: 1, flexDirection: 'row', gap: 12, paddingVertical: 10 }, setText: { flex: 1 }, setTitle: { color: '#0f172a', fontWeight: '700' }, setDetail: { color: '#64748b', fontSize: 13, marginTop: 3 }, link: { color: '#0e7490', fontWeight: '700' }, danger: { color: '#b91c1c', fontWeight: '700' }, empty: { color: '#64748b', paddingVertical: 10 }, addSetButton: { alignItems: 'center', backgroundColor: '#cffafe', borderRadius: 10, marginTop: 10, padding: 12 }, addSetText: { color: '#155e75', fontWeight: '800' }, noteLabel: { color: '#334155', fontWeight: '700', marginTop: 14 }, noteInput: { borderColor: '#cbd5e1', borderRadius: 10, borderWidth: 1, color: '#0f172a', marginTop: 7, padding: 10 },
+  finishButton: { alignItems: 'center', backgroundColor: '#b91c1c', borderRadius: 12, marginTop: 8, padding: 15 }, finishButtonText: { color: '#fff', fontWeight: '800' },
   modalHeader: { alignItems: 'center', borderBottomColor: '#e2e8f0', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', padding: 18 }, modalTitle: { color: '#0f172a', fontSize: 22, fontWeight: '800' }, form: { padding: 20, paddingBottom: 48 }, label: { color: '#334155', fontWeight: '700', marginBottom: 7, marginTop: 12 }, input: { backgroundColor: '#fff', borderColor: '#cbd5e1', borderRadius: 10, borderWidth: 1, color: '#0f172a', fontSize: 17, padding: 12 }, toggle: { backgroundColor: '#e2e8f0', borderRadius: 10, marginTop: 18, padding: 12 }, toggleText: { color: '#334155', fontWeight: '700' }, disabledButton: { opacity: 0.5 },
+  confirmBackdrop: { backgroundColor: 'rgba(15, 23, 42, 0.5)', flex: 1, justifyContent: 'center', padding: 22 }, confirmCard: { backgroundColor: '#fff', borderRadius: 18, padding: 20 }, confirmTitle: { color: '#0f172a', fontSize: 22, fontWeight: '800' }, confirmText: { color: '#64748b', lineHeight: 21, marginTop: 7 }, finalNote: { minHeight: 84, textAlignVertical: 'top' }, confirmActions: { alignItems: 'center', flexDirection: 'row', gap: 18, justifyContent: 'flex-end', marginTop: 18 }, finishConfirm: { backgroundColor: '#b91c1c', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12 },
 });

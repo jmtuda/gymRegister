@@ -168,7 +168,10 @@ export function TrainScreen() {
           </Pressable>
         </View>
       ) : session.status === 'in_progress' ? (
-        <SessionExecutionScreen items={items} onAddExercise={() => void openPicker()} onRefresh={refresh} />
+        <SessionExecutionScreen
+          session={session} items={items} onAddExercise={() => void openPicker()}
+          onRefresh={refresh} onCompleted={refresh}
+        />
       ) : (
         <FlatList
           data={items} keyExtractor={(item) => item.id} contentContainerStyle={styles.list}
