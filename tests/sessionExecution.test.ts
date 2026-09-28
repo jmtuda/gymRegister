@@ -220,6 +220,49 @@ test('editar conserva ID y confirmed_at y no permite un session_exercise ajeno',
   sqlite.close();
 });
 
+test('editar conserva la semántica almacenada aunque cambie la configuración CUSTOM', async () => {
+  const { sqlite, database, sessions, execution } = await setup();
+  const catalog = createCatalogRepository(database);
+  const exercise = await catalog.createCustomExercise({
+    id: 'CUSTOM_HISTORY', groupId: 'CHEST', nameEs: 'Ejercicio histórico',
+  });
+  const configuration = await catalog.createCustomConfiguration({
+    id: 'CUSTOM_HISTORY.CONFIG', exerciseId: exercise.id, nameEs: 'Configuración original',
+    equipmentOptions: ['BARBELL'], doseUnit: 'reps', loadMode: 'TOTAL_KG',
+  });
+  const session = await sessions.createDraft();
+  const sessionExercise = await sessions.addExercise({
+    id: 'custom-history-session-exercise', sessionId: session.id,
+    exerciseId: exercise.id, configurationId: configuration.id,
+  });
+  await sessions.startSession(session.id);
+  const confirmed = await execution.confirmSet({
+    attemptId: createUuid(), sessionExerciseId: sessionExercise.id,
+    doseValue: 8, loadValue: 50, now: '2026-04-01T10:05:00.000Z',
+  });
+
+  await catalog.updateCustomConfiguration(configuration.id, {
+    doseUnit: 'seconds', loadMode: 'BAND_LABEL',
+  });
+  const edited = await execution.editSet({
+    setId: confirmed.id, sessionExerciseId: sessionExercise.id,
+    doseValue: 10, loadValue: 55, now: '2026-04-01T10:10:00.000Z',
+  });
+  assert.equal(edited.id, confirmed.id);
+  assert.equal(edited.confirmedAt, confirmed.confirmedAt);
+  assert.equal(edited.doseUnit, 'reps');
+  assert.equal(edited.loadMode, 'TOTAL_KG');
+  assert.equal(edited.loadValue, 55);
+  assert.equal(edited.loadLabel, null);
+
+  await assert.rejects(execution.editSet({
+    setId: confirmed.id, sessionExerciseId: sessionExercise.id,
+    doseValue: 12, loadLabel: 'Roja',
+  }), /valor numérico/);
+  assert.deepEqual(await execution.listSets(sessionExercise.id), [edited]);
+  sqlite.close();
+});
+
 test('eliminar compacta set_index y un fallo intermedio hace rollback completo', async () => {
   const { sqlite, database, sessions, execution } = await setup();
   const { exercise } = await inProgressFixture(sessions);

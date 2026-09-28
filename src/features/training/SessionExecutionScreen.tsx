@@ -68,7 +68,8 @@ export function SessionExecutionScreen({ items, onAddExercise, onRefresh }: Prop
     });
   };
   const openEditSet = async (item: SessionExercise, value: PerformedSet) => {
-    setContext(await execution.getExecutionContext(item.id));
+    const currentContext = await execution.getExecutionContext(item.id);
+    setContext({ ...currentContext, dose_unit: value.doseUnit, load_mode: value.loadMode });
     setForm({
       attemptId: value.id, editingId: value.id, dose: String(value.doseValue),
       load: value.loadValue === null ? '' : String(value.loadValue), loadLabel: value.loadLabel ?? '',

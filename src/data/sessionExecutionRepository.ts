@@ -9,6 +9,7 @@ type ExecutionContext = {
   dose_unit: DoseUnit;
   load_mode: LoadMode;
 };
+type SetSemantics = Pick<ExecutionContext, 'selected_laterality' | 'dose_unit' | 'load_mode'>;
 type SetRow = {
   id: string; session_exercise_id: string; set_index: number; dose_unit: DoseUnit;
   dose_value: number; per_side: number; load_mode: LoadMode; load_value: number | null;
@@ -60,7 +61,7 @@ async function getContext(database: DatabaseConnection, sessionExerciseId: strin
   return context;
 }
 
-function validateValues(context: ExecutionContext, values: SetValues) {
+function validateValues(context: SetSemantics, values: SetValues) {
   if (!Number.isFinite(values.doseValue) || values.doseValue <= 0) {
     throw new Error('La dosis debe ser mayor que cero.');
   }
@@ -184,7 +185,11 @@ export function createSessionExecutionRepository(database: Database) {
         if (!existing || existing.session_exercise_id !== input.sessionExerciseId) {
           throw new Error('La serie no pertenece a este ejercicio de sesión.');
         }
-        const values = validateValues(context, input);
+        const values = validateValues({
+          selected_laterality: context.selected_laterality,
+          dose_unit: existing.dose_unit,
+          load_mode: existing.load_mode,
+        }, input);
         const now = input.now ?? new Date().toISOString();
         await transaction.runAsync(
           `UPDATE performed_sets SET dose_value = ?, per_side = ?, load_value = ?, load_label = ?,
