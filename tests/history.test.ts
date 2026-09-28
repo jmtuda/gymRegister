@@ -8,6 +8,7 @@ import { seedSystemCatalog } from '../src/data/catalogSeed.ts';
 import { initializeDatabase } from '../src/data/database.ts';
 import { createHistoryRepository } from '../src/data/historyRepository.ts';
 import { createManualSessionRepository } from '../src/data/manualSessionRepository.ts';
+import { createPerformedSetRepository } from '../src/data/performedSetRepository.ts';
 import { createSessionExecutionRepository } from '../src/data/sessionExecutionRepository.ts';
 import type { Database } from '../src/data/types.ts';
 import type { CatalogSeedData } from '../src/domain/catalog.ts';
@@ -187,5 +188,37 @@ test('el detalle histórico usa snapshots y semántica persistida, no el catálo
   assert.equal(detail?.exercises[0].sets[0].doseUnit, 'reps');
   assert.equal(detail?.exercises[0].sets[0].loadMode, 'DISPLAYED_KG');
   assert.equal(detail?.exercises[0].sets[0].loadValue, 35);
+  sqlite.close();
+});
+
+test('performedSetRepository no puede alterar el historial de una sesión completed', async () => {
+  const { sqlite, database, sessions, execution, history } = await setup();
+  const direct = createPerformedSetRepository(database);
+  const session = await sessions.createDraft();
+  const exercise = await addAndStart(
+    sessions, session.id, 'BACK_SQUAT', 'BACK_SQUAT.BARBELL', 'closed-exercise',
+  );
+  await execution.confirmSet({
+    attemptId: createUuid(), sessionExerciseId: exercise.id, doseValue: 8, loadValue: 50,
+  });
+  await history.completeSession(session.id, 'Historial cerrado', '2026-05-01T11:00:00.000Z');
+  const beforeList = await history.listCompletedSessions();
+  const beforeDetail = await history.getCompletedSessionDetail(session.id);
+
+  await assert.rejects(direct.createSessionExercise({
+    id: 'late-exercise', sessionId: session.id, exerciseId: 'ROW', configurationId: 'ROW.BARBELL',
+    exerciseNameSnapshot: 'Remo horizontal', configurationNameSnapshot: 'Remo con barra', orderIndex: 1,
+  }), /sesión abierta/);
+  await assert.rejects(direct.createSet({
+    id: 'late-set', sessionExerciseId: exercise.id, setIndex: 1,
+    doseUnit: 'reps', doseValue: 10, loadMode: 'TOTAL_KG', loadValue: 55,
+  }), /sesión en curso/);
+
+  const afterList = await history.listCompletedSessions();
+  const afterDetail = await history.getCompletedSessionDetail(session.id);
+  assert.deepEqual(afterList, beforeList);
+  assert.deepEqual(afterDetail, beforeDetail);
+  assert.equal(afterList[0].exerciseCount, 1);
+  assert.equal(afterList[0].setCount, 1);
   sqlite.close();
 });
