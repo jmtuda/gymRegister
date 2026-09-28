@@ -11,6 +11,7 @@ import { createManualSessionRepository } from '../../data/manualSessionRepositor
 import type { Exercise, ExerciseConfiguration, ExerciseGroup } from '../../domain/catalog.ts';
 import type { SessionExercise, TrainingSession } from '../../domain/training.ts';
 import { labelForOption } from '../exercises/catalogPresentation.ts';
+import { SessionExecutionScreen } from './SessionExecutionScreen.tsx';
 
 type Selection = {
   equipment: string | null; laterality: string | null; grip: string | null; gripWidth: string | null;
@@ -156,7 +157,7 @@ export function TrainScreen() {
         <Text style={styles.eyebrow}>ENTRENAR</Text>
         <Text style={styles.title}>{session?.status === 'in_progress' ? 'Sesión en curso' : session ? 'Prepara tu sesión' : 'Nueva sesión'}</Text>
         <Text style={styles.subtitle}>{session?.status === 'in_progress'
-          ? 'Tu sesión está guardada. El registro de series llegará en la siguiente fase.'
+          ? 'Registra cada serie cuando la completes.'
           : session ? 'Añade y ordena los ejercicios antes de empezar.' : 'Crea una sesión manual y elige tus ejercicios.'}</Text>
       </View>
 
@@ -166,6 +167,8 @@ export function TrainScreen() {
             <Text style={styles.primaryButtonText}>{creating ? 'Creando…' : 'Crear sesión'}</Text>
           </Pressable>
         </View>
+      ) : session.status === 'in_progress' ? (
+        <SessionExecutionScreen items={items} onAddExercise={() => void openPicker()} onRefresh={refresh} />
       ) : (
         <FlatList
           data={items} keyExtractor={(item) => item.id} contentContainerStyle={styles.list}

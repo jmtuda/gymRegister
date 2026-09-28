@@ -65,6 +65,16 @@ async function requireDraft(database: DatabaseConnection, sessionId: string): Pr
   if (row.status !== 'draft') throw new Error('Solo se puede modificar una sesión en borrador.');
 }
 
+async function requireOpenSession(database: DatabaseConnection, sessionId: string): Promise<void> {
+  const row = await database.getFirstAsync<{ status: string }>(
+    'SELECT status FROM training_sessions WHERE id = ?', sessionId,
+  );
+  if (!row) throw new Error('Sesión no encontrada.');
+  if (row.status !== 'draft' && row.status !== 'in_progress') {
+    throw new Error('Solo se puede modificar una sesión abierta.');
+  }
+}
+
 async function listExercises(database: DatabaseConnection, sessionId: string): Promise<SessionExercise[]> {
   const rows = await database.getAllAsync<SessionExerciseRow>(
     'SELECT * FROM session_exercises WHERE session_id = ? ORDER BY order_index, id', sessionId,
@@ -151,7 +161,7 @@ export function createManualSessionRepository(database: Database) {
       const now = input.now ?? new Date().toISOString();
 
       await database.withExclusiveTransactionAsync(async (transaction) => {
-        await requireDraft(transaction, input.sessionId);
+        await requireOpenSession(transaction, input.sessionId);
         const catalog = await transaction.getFirstAsync<CatalogSelectionRow>(
           `SELECT exercises.id AS exercise_id, exercises.name_es AS exercise_name,
             exercises.active AS exercise_active, configurations.id AS configuration_id,
@@ -212,7 +222,7 @@ export function createManualSessionRepository(database: Database) {
 
     async reorderExercises(sessionId: string, orderedIds: string[]): Promise<SessionExercise[]> {
       await database.withExclusiveTransactionAsync(async (transaction) => {
-        await requireDraft(transaction, sessionId);
+        await requireOpenSession(transaction, sessionId);
         const existing = await listExercises(transaction, sessionId);
         const currentIds = existing.map((item) => item.id);
         if (orderedIds.length !== currentIds.length
