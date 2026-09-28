@@ -1,5 +1,5 @@
-import { PlaceholderScreen } from '@/features/shared/PlaceholderScreen';
+import { ExercisesScreen } from '@/features/exercises/ExercisesScreen';
 
 export default function ExercisesRoute() {
-  return <PlaceholderScreen title="Ejercicios" description="Aquí podrás explorar y gestionar tus ejercicios." />;
+  return <ExercisesScreen />;
 }
