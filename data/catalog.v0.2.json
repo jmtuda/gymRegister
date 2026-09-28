@@ -1,0 +1,3586 @@
+{
+  "catalogId": "gymregister-catalog-v0.2",
+  "source": {
+    "repository": "jmtuda/gymCoach",
+    "catalogVersion": "2.2",
+    "note": "Simplified for gymRegister: 9 visible groups; technical patterns retained only as metadata."
+  },
+  "groups": [
+    {
+      "id": "LEGS_QUADS",
+      "nameEs": "Piernas — cuádriceps y rodilla",
+      "sortOrder": 1
+    },
+    {
+      "id": "POSTERIOR_CHAIN",
+      "nameEs": "Glúteos, isquios y cadera",
+      "sortOrder": 2
+    },
+    {
+      "id": "CHEST",
+      "nameEs": "Pecho",
+      "sortOrder": 3
+    },
+    {
+      "id": "BACK",
+      "nameEs": "Espalda",
+      "sortOrder": 4
+    },
+    {
+      "id": "SHOULDERS",
+      "nameEs": "Hombros",
+      "sortOrder": 5
+    },
+    {
+      "id": "ARMS",
+      "nameEs": "Brazos",
+      "sortOrder": 6
+    },
+    {
+      "id": "CORE",
+      "nameEs": "Core",
+      "sortOrder": 7
+    },
+    {
+      "id": "CALF_FOOT",
+      "nameEs": "Pantorrilla y pie",
+      "sortOrder": 8
+    },
+    {
+      "id": "GRIP_FOREARM",
+      "nameEs": "Agarre y antebrazo",
+      "sortOrder": 9
+    }
+  ],
+  "exercises": [
+    {
+      "id": "BACK_SQUAT",
+      "groupId": "LEGS_QUADS",
+      "nameEs": "Sentadilla trasera",
+      "technicalPattern": "KNEE_BILAT",
+      "secondaryPatterns": [
+        "SQUAT"
+      ],
+      "primaryMuscles": [
+        "cuádriceps",
+        "glúteos"
+      ],
+      "secondaryMuscles": [
+        "tronco"
+      ],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "FRONT_OR_GOBLET_SQUAT",
+      "groupId": "LEGS_QUADS",
+      "nameEs": "Sentadilla frontal o goblet",
+      "technicalPattern": "KNEE_BILAT",
+      "secondaryPatterns": [
+        "SQUAT"
+      ],
+      "primaryMuscles": [
+        "cuádriceps",
+        "glúteos"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_PRESS",
+      "groupId": "LEGS_QUADS",
+      "nameEs": "Prensa de piernas",
+      "technicalPattern": "KNEE_BILAT",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "cuádriceps",
+        "glúteos"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "SPLIT_SQUAT",
+      "groupId": "LEGS_QUADS",
+      "nameEs": "Split squat y zancada",
+      "technicalPattern": "KNEE_UNILAT",
+      "secondaryPatterns": [
+        "HIP_EXTENSION"
+      ],
+      "primaryMuscles": [
+        "cuádriceps",
+        "glúteos"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "STEP_UP",
+      "groupId": "LEGS_QUADS",
+      "nameEs": "Subida al cajón",
+      "technicalPattern": "KNEE_UNILAT",
+      "secondaryPatterns": [
+        "STEP_CONTROL"
+      ],
+      "primaryMuscles": [
+        "cuádriceps",
+        "glúteos"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_EXTENSION",
+      "groupId": "LEGS_QUADS",
+      "nameEs": "Extensión de rodilla",
+      "technicalPattern": "KNEE_EXTENSION_ACCESSORY",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "cuádriceps"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ROMANIAN_DEADLIFT",
+      "groupId": "POSTERIOR_CHAIN",
+      "nameEs": "Peso muerto rumano",
+      "technicalPattern": "HIP_HINGE",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "isquios",
+        "glúteos"
+      ],
+      "secondaryMuscles": [
+        "erectores",
+        "agarre"
+      ],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "HIP_THRUST",
+      "groupId": "POSTERIOR_CHAIN",
+      "nameEs": "Hip thrust y puente de glúteo",
+      "technicalPattern": "HIP_EXTENSION",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "glúteos",
+        "isquios"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_CURL",
+      "groupId": "POSTERIOR_CHAIN",
+      "nameEs": "Curl femoral",
+      "technicalPattern": "KNEE_FLEXION",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "isquiotibiales"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "BACK_EXTENSION",
+      "groupId": "POSTERIOR_CHAIN",
+      "nameEs": "Extensión en banco 45°",
+      "technicalPattern": "BACK_EXTENSION",
+      "secondaryPatterns": [
+        "HIP_EXTENSION"
+      ],
+      "primaryMuscles": [
+        "glúteos",
+        "erectores"
+      ],
+      "secondaryMuscles": [
+        "isquios"
+      ],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "HIP_ABDUCTION_ADDUCTION",
+      "groupId": "POSTERIOR_CHAIN",
+      "nameEs": "Abducción y aducción de cadera",
+      "technicalPattern": "HIP_ABDUCTION",
+      "secondaryPatterns": [
+        "HIP_ADDUCTION"
+      ],
+      "primaryMuscles": [
+        "glúteo medio o aductores"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CHEST_PRESS",
+      "groupId": "CHEST",
+      "nameEs": "Press de pecho horizontal",
+      "technicalPattern": "HORIZONTAL_PUSH",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "pectoral",
+        "tríceps"
+      ],
+      "secondaryMuscles": [
+        "deltoide anterior"
+      ],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "INCLINE_CHEST_PRESS",
+      "groupId": "CHEST",
+      "nameEs": "Press de pecho inclinado",
+      "technicalPattern": "HORIZONTAL_PUSH",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "pectoral",
+        "deltoide anterior"
+      ],
+      "secondaryMuscles": [
+        "tríceps"
+      ],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CHEST_FLY",
+      "groupId": "CHEST",
+      "nameEs": "Apertura de pecho",
+      "technicalPattern": "HORIZONTAL_ADDUCTION",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "pectoral"
+      ],
+      "secondaryMuscles": [
+        "deltoide anterior"
+      ],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ROW",
+      "groupId": "BACK",
+      "nameEs": "Remo horizontal",
+      "technicalPattern": "HORIZONTAL_PULL",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "dorsal",
+        "espalda media"
+      ],
+      "secondaryMuscles": [
+        "bíceps",
+        "agarre"
+      ],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LAT_PULLDOWN",
+      "groupId": "BACK",
+      "nameEs": "Jalón al pecho",
+      "technicalPattern": "VERTICAL_PULL",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "dorsal",
+        "bíceps"
+      ],
+      "secondaryMuscles": [
+        "espalda media"
+      ],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "PULL_UP",
+      "groupId": "BACK",
+      "nameEs": "Dominada",
+      "technicalPattern": "VERTICAL_PULL",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "dorsal",
+        "bíceps"
+      ],
+      "secondaryMuscles": [
+        "agarre"
+      ],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "REAR_DELT_SCAPULA",
+      "groupId": "SHOULDERS",
+      "nameEs": "Trabajo escapular y deltoide posterior",
+      "technicalPattern": "SCAPULAR_STABILITY",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "deltoide posterior",
+        "romboides",
+        "rotadores"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "OVERHEAD_PRESS",
+      "groupId": "SHOULDERS",
+      "nameEs": "Press vertical",
+      "technicalPattern": "VERTICAL_PUSH",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "deltoides",
+        "tríceps"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LATERAL_RAISE",
+      "groupId": "SHOULDERS",
+      "nameEs": "Elevación lateral",
+      "technicalPattern": "SHOULDER_ABDUCTION",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "deltoide lateral"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "BICEPS_CURL",
+      "groupId": "ARMS",
+      "nameEs": "Curl de bíceps",
+      "technicalPattern": "ELBOW_FLEXION",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "bíceps",
+        "braquial"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "TRICEPS_EXTENSION",
+      "groupId": "ARMS",
+      "nameEs": "Extensión de tríceps",
+      "technicalPattern": "ELBOW_EXTENSION",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "tríceps"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ANTI_EXTENSION",
+      "groupId": "CORE",
+      "nameEs": "Anti-extensión",
+      "technicalPattern": "ANTI_EXTENSION",
+      "secondaryPatterns": [
+        "LUMBOPELVIC_CONTROL"
+      ],
+      "primaryMuscles": [
+        "abdominales"
+      ],
+      "secondaryMuscles": [
+        "serrato",
+        "glúteos"
+      ],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ANTI_ROTATION_LATERAL",
+      "groupId": "CORE",
+      "nameEs": "Anti-rotación y anti-flexión lateral",
+      "technicalPattern": "ANTI_ROTATION",
+      "secondaryPatterns": [
+        "ANTI_LATERAL"
+      ],
+      "primaryMuscles": [
+        "oblicuos",
+        "glúteo medio"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CONTROLLED_ROTATION",
+      "groupId": "CORE",
+      "nameEs": "Rotación controlada",
+      "technicalPattern": "CONTROLLED_ROTATION",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "oblicuos"
+      ],
+      "secondaryMuscles": [
+        "cadera",
+        "hombro"
+      ],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LUMBAR_CONTROL",
+      "groupId": "CORE",
+      "nameEs": "Control lumbopélvico",
+      "technicalPattern": "LUMBOPELVIC_CONTROL",
+      "secondaryPatterns": [],
+      "primaryMuscles": [
+        "tronco",
+        "glúteos"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CALF_RAISE",
+      "groupId": "CALF_FOOT",
+      "nameEs": "Elevación de talones",
+      "technicalPattern": "CALF",
+      "secondaryPatterns": [
+        "SOLEUS"
+      ],
+      "primaryMuscles": [
+        "gemelos",
+        "sóleo"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "TIBIAL_FOOT_CONTROL",
+      "groupId": "CALF_FOOT",
+      "nameEs": "Tibial y control de pie",
+      "technicalPattern": "DORSIFLEXION",
+      "secondaryPatterns": [
+        "FOOT_CONTROL",
+        "BALANCE"
+      ],
+      "primaryMuscles": [
+        "tibial anterior",
+        "intrínsecos del pie"
+      ],
+      "secondaryMuscles": [],
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "GRIP_CARRY",
+      "groupId": "GRIP_FOREARM",
+      "nameEs": "Agarre y transporte",
+      "technicalPattern": "GRIP",
+      "secondaryPatterns": [
+        "CARRY",
+        "ANTI_LATERAL"
+      ],
+      "primaryMuscles": [
+        "agarre",
+        "antebrazo"
+      ],
+      "secondaryMuscles": [
+        "trapecio",
+        "tronco"
+      ],
+      "origin": "SYSTEM",
+      "active": true
+    }
+  ],
+  "configurations": [
+    {
+      "id": "BACK_SQUAT.BARBELL",
+      "exerciseId": "BACK_SQUAT",
+      "nameEs": "Sentadilla trasera con barra",
+      "equipmentOptions": [
+        "BARBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra recta",
+      "auxiliaryEquipment": [
+        "rack"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "TOTAL_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "BACK_SQUAT.SMITH",
+      "exerciseId": "BACK_SQUAT",
+      "nameEs": "Sentadilla trasera en máquina Smith",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra guiada",
+      "auxiliaryEquipment": [
+        "máquina guiada"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "FRONT_OR_GOBLET_SQUAT.BARBELL_FRONT",
+      "exerciseId": "FRONT_OR_GOBLET_SQUAT",
+      "nameEs": "Sentadilla frontal con barra",
+      "equipmentOptions": [
+        "BARBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra recta",
+      "auxiliaryEquipment": [
+        "rack"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "TOTAL_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "FRONT_OR_GOBLET_SQUAT.GOBLET",
+      "exerciseId": "FRONT_OR_GOBLET_SQUAT",
+      "nameEs": "Sentadilla goblet",
+      "equipmentOptions": [
+        "DUMBBELL",
+        "KETTLEBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "NARROW"
+      ],
+      "attachment": "mancuerna/kettlebell",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "FRONT_OR_GOBLET_SQUAT.BAND",
+      "exerciseId": "FRONT_OR_GOBLET_SQUAT",
+      "nameEs": "Sentadilla con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "banda bajo pies",
+      "auxiliaryEquipment": [],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_PRESS.MACHINE_45",
+      "exerciseId": "LEG_PRESS",
+      "nameEs": "Prensa de piernas inclinada a 45°",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "prensa inclinada"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_PRESS.MACHINE_HORIZONTAL",
+      "exerciseId": "LEG_PRESS",
+      "nameEs": "Prensa de piernas horizontal",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "prensa horizontal"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "SPLIT_SQUAT.BODYWEIGHT",
+      "exerciseId": "SPLIT_SQUAT",
+      "nameEs": "Split squat con peso corporal",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": null,
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "SPLIT_SQUAT.DUMBBELL",
+      "exerciseId": "SPLIT_SQUAT",
+      "nameEs": "Split squat con mancuernas",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuernas",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "SPLIT_SQUAT.SMITH",
+      "exerciseId": "SPLIT_SQUAT",
+      "nameEs": "Split squat en máquina Smith",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra guiada",
+      "auxiliaryEquipment": [
+        "máquina guiada"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "SPLIT_SQUAT.CABLE",
+      "exerciseId": "SPLIT_SQUAT",
+      "nameEs": "Split squat en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asa individual",
+      "auxiliaryEquipment": [
+        "asa individual"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "STEP_UP.BODYWEIGHT",
+      "exerciseId": "STEP_UP",
+      "nameEs": "Subida al cajón con peso corporal",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": null,
+      "auxiliaryEquipment": [
+        "caja"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "STEP_UP.DUMBBELL",
+      "exerciseId": "STEP_UP",
+      "nameEs": "Subida al cajón con mancuernas",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuernas",
+      "auxiliaryEquipment": [
+        "caja"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_EXTENSION.MACHINE",
+      "exerciseId": "LEG_EXTENSION",
+      "nameEs": "Extensión de rodilla en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "extensión de rodilla"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_EXTENSION.CABLE",
+      "exerciseId": "LEG_EXTENSION",
+      "nameEs": "Extensión de rodilla unilateral en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "tobillera",
+      "auxiliaryEquipment": [
+        "tobillera",
+        "banco"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_EXTENSION.BAND_TKE",
+      "exerciseId": "LEG_EXTENSION",
+      "nameEs": "Extensión terminal de rodilla con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "banda detrás de rodilla",
+      "auxiliaryEquipment": [
+        "anclaje bajo o medio"
+      ],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": true,
+      "anchorHeightOptions": [
+        "MEDIUM",
+        "LOW"
+      ],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ROMANIAN_DEADLIFT.BARBELL",
+      "exerciseId": "ROMANIAN_DEADLIFT",
+      "nameEs": "Peso muerto rumano con barra",
+      "equipmentOptions": [
+        "BARBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED",
+        "MIXED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra recta",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "TOTAL_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ROMANIAN_DEADLIFT.DUMBBELL",
+      "exerciseId": "ROMANIAN_DEADLIFT",
+      "nameEs": "Peso muerto rumano con mancuernas",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuernas",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ROMANIAN_DEADLIFT.CABLE",
+      "exerciseId": "ROMANIAN_DEADLIFT",
+      "nameEs": "Peso muerto rumano en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED",
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra/cuerda",
+      "auxiliaryEquipment": [
+        "barra recta o cuerda"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ROMANIAN_DEADLIFT.BAND",
+      "exerciseId": "ROMANIAN_DEADLIFT",
+      "nameEs": "Peso muerto rumano con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "banda bajo pies",
+      "auxiliaryEquipment": [],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "HIP_THRUST.BARBELL",
+      "exerciseId": "HIP_THRUST",
+      "nameEs": "Hip thrust con barra",
+      "equipmentOptions": [
+        "BARBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "almohadilla de barra",
+      "auxiliaryEquipment": [
+        "banco"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "TOTAL_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "HIP_THRUST.MACHINE",
+      "exerciseId": "HIP_THRUST",
+      "nameEs": "Hip thrust en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "cinturón/almohadilla",
+      "auxiliaryEquipment": [
+        "máquina de hip thrust"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "HIP_THRUST.DUMBBELL",
+      "exerciseId": "HIP_THRUST",
+      "nameEs": "Hip thrust o puente de glúteo con mancuerna",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "mancuerna sobre pelvis",
+      "auxiliaryEquipment": [
+        "banco o suelo"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "HIP_THRUST.BAND",
+      "exerciseId": "HIP_THRUST",
+      "nameEs": "Hip thrust o puente de glúteo con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "banda sobre cadera",
+      "auxiliaryEquipment": [
+        "banco o suelo"
+      ],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_CURL.SEATED_MACHINE",
+      "exerciseId": "LEG_CURL",
+      "nameEs": "Curl femoral sentado en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "curl sentado"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_CURL.LYING_MACHINE",
+      "exerciseId": "LEG_CURL",
+      "nameEs": "Curl femoral tumbado en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "curl tumbado"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_CURL.CABLE",
+      "exerciseId": "LEG_CURL",
+      "nameEs": "Curl femoral unilateral en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "tobillera",
+      "auxiliaryEquipment": [
+        "tobillera"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_CURL.BAND",
+      "exerciseId": "LEG_CURL",
+      "nameEs": "Curl femoral con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL",
+        "UNILATERAL",
+        "ALTERNATING"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "tobillera o banda",
+      "auxiliaryEquipment": [
+        "anclaje bajo"
+      ],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": true,
+      "anchorHeightOptions": [
+        "LOW"
+      ],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LEG_CURL.NORDIC_ASSISTED",
+      "exerciseId": "LEG_CURL",
+      "nameEs": "Curl nórdico asistido",
+      "equipmentOptions": [
+        "BODYWEIGHT",
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "asistencia opcional",
+      "auxiliaryEquipment": [
+        "fijación"
+      ],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "BACK_EXTENSION.BODYWEIGHT",
+      "exerciseId": "BACK_EXTENSION",
+      "nameEs": "Extensión en banco 45° con peso corporal",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": null,
+      "auxiliaryEquipment": [
+        "banco 45°"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "BACK_EXTENSION.DUMBBELL",
+      "exerciseId": "BACK_EXTENSION",
+      "nameEs": "Extensión en banco 45° con mancuerna",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "NARROW"
+      ],
+      "attachment": "mancuerna al pecho",
+      "auxiliaryEquipment": [
+        "banco 45°"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "HIP_ABDUCTION_ADDUCTION.MACHINE",
+      "exerciseId": "HIP_ABDUCTION_ADDUCTION",
+      "nameEs": "Abducción o aducción de cadera en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "máquina abductor-aductor"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "HIP_ABDUCTION_ADDUCTION.CABLE",
+      "exerciseId": "HIP_ABDUCTION_ADDUCTION",
+      "nameEs": "Abducción o aducción de cadera en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "tobillera",
+      "auxiliaryEquipment": [
+        "tobillera"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "HIP_ABDUCTION_ADDUCTION.BAND",
+      "exerciseId": "HIP_ABDUCTION_ADDUCTION",
+      "nameEs": "Abducción o aducción de cadera con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL",
+        "UNILATERAL",
+        "ALTERNATING"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "banda",
+      "auxiliaryEquipment": [
+        "minibanda o anclaje bajo"
+      ],
+      "bandType": [
+        "MINIBAND"
+      ],
+      "anchorRequired": true,
+      "anchorHeightOptions": [
+        "LOW"
+      ],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "HIP_ABDUCTION_ADDUCTION.COPENHAGEN",
+      "exerciseId": "HIP_ABDUCTION_ADDUCTION",
+      "nameEs": "Plancha Copenhagen",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": null,
+      "auxiliaryEquipment": [
+        "banco"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "seconds",
+      "perSide": true,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CHEST_PRESS.BARBELL_BENCH",
+      "exerciseId": "CHEST_PRESS",
+      "nameEs": "Press banca con barra",
+      "equipmentOptions": [
+        "BARBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra recta",
+      "auxiliaryEquipment": [
+        "banco",
+        "rack"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "TOTAL_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CHEST_PRESS.DUMBBELL_BENCH",
+      "exerciseId": "CHEST_PRESS",
+      "nameEs": "Press banca con mancuernas",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL",
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuernas",
+      "auxiliaryEquipment": [
+        "banco"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CHEST_PRESS.MACHINE",
+      "exerciseId": "CHEST_PRESS",
+      "nameEs": "Press de pecho en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL",
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "press convergente u horizontal"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CHEST_PRESS.CABLE",
+      "exerciseId": "CHEST_PRESS",
+      "nameEs": "Press de pecho en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asas individuales",
+      "auxiliaryEquipment": [
+        "asas dobles",
+        "banco opcional"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CHEST_PRESS.PUSH_UP",
+      "exerciseId": "CHEST_PRESS",
+      "nameEs": "Flexiones",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "suelo/agarres",
+      "auxiliaryEquipment": [
+        "suelo o banco"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CHEST_PRESS.BAND",
+      "exerciseId": "CHEST_PRESS",
+      "nameEs": "Press de pecho con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "banda con asas",
+      "auxiliaryEquipment": [
+        "anclaje medio"
+      ],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": true,
+      "anchorHeightOptions": [
+        "MEDIUM"
+      ],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "INCLINE_CHEST_PRESS.BARBELL",
+      "exerciseId": "INCLINE_CHEST_PRESS",
+      "nameEs": "Press banca inclinado con barra",
+      "equipmentOptions": [
+        "BARBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra recta",
+      "auxiliaryEquipment": [
+        "banco",
+        "rack"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "TOTAL_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "INCLINE_CHEST_PRESS.DUMBBELL",
+      "exerciseId": "INCLINE_CHEST_PRESS",
+      "nameEs": "Press banca inclinado con mancuernas",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL",
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuernas",
+      "auxiliaryEquipment": [
+        "banco"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "INCLINE_CHEST_PRESS.MACHINE",
+      "exerciseId": "INCLINE_CHEST_PRESS",
+      "nameEs": "Press de pecho inclinado en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL",
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "press inclinado"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CHEST_FLY.MACHINE",
+      "exerciseId": "CHEST_FLY",
+      "nameEs": "Aperturas en máquina peck deck",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "almohadillas/asas",
+      "auxiliaryEquipment": [
+        "peck deck"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CHEST_FLY.CABLE",
+      "exerciseId": "CHEST_FLY",
+      "nameEs": "Aperturas en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asa individual",
+      "auxiliaryEquipment": [
+        "asas individuales"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CHEST_FLY.DUMBBELL",
+      "exerciseId": "CHEST_FLY",
+      "nameEs": "Aperturas con mancuernas",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuernas",
+      "auxiliaryEquipment": [
+        "banco"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ROW.BARBELL",
+      "exerciseId": "ROW",
+      "nameEs": "Remo con barra",
+      "equipmentOptions": [
+        "BARBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra recta",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "TOTAL_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ROW.DUMBBELL_ONE_ARM",
+      "exerciseId": "ROW",
+      "nameEs": "Remo unilateral con mancuerna",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuerna",
+      "auxiliaryEquipment": [
+        "banco opcional"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ROW.CHEST_SUPPORTED_MACHINE",
+      "exerciseId": "ROW",
+      "nameEs": "Remo en máquina con pecho apoyado",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL",
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "remo con pecho apoyado"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ROW.SEATED_CABLE",
+      "exerciseId": "ROW",
+      "nameEs": "Remo sentado en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL",
+        "PRONATED",
+        "SUPINATED"
+      ],
+      "gripWidthOptions": [
+        "NARROW",
+        "MEDIUM"
+      ],
+      "attachment": "accesorio elegido",
+      "auxiliaryEquipment": [
+        "maneral doble",
+        "barra o asas"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ROW.BAND",
+      "exerciseId": "ROW",
+      "nameEs": "Remo con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL",
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "banda con asas",
+      "auxiliaryEquipment": [
+        "anclaje medio"
+      ],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": true,
+      "anchorHeightOptions": [
+        "MEDIUM"
+      ],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ROW.INVERTED",
+      "exerciseId": "ROW",
+      "nameEs": "Remo invertido",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED",
+        "SUPINATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra",
+      "auxiliaryEquipment": [
+        "barra baja"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LAT_PULLDOWN.CABLE_PRONATED",
+      "exerciseId": "LAT_PULLDOWN",
+      "nameEs": "Jalón al pecho en polea con agarre pronado",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM",
+        "WIDE"
+      ],
+      "attachment": "barra recta",
+      "auxiliaryEquipment": [
+        "barra larga"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LAT_PULLDOWN.CABLE_NEUTRAL",
+      "exerciseId": "LAT_PULLDOWN",
+      "nameEs": "Jalón al pecho en polea con agarre neutro",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "NARROW",
+        "MEDIUM"
+      ],
+      "attachment": "agarre paralelo",
+      "auxiliaryEquipment": [
+        "maneral paralelo"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LAT_PULLDOWN.CABLE_SUPINATED",
+      "exerciseId": "LAT_PULLDOWN",
+      "nameEs": "Jalón al pecho en polea con agarre supinado",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "SUPINATED"
+      ],
+      "gripWidthOptions": [
+        "NARROW",
+        "MEDIUM"
+      ],
+      "attachment": "barra recta",
+      "auxiliaryEquipment": [
+        "barra recta"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LAT_PULLDOWN.MACHINE",
+      "exerciseId": "LAT_PULLDOWN",
+      "nameEs": "Jalón al pecho en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL",
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "jalón guiado"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LAT_PULLDOWN.BAND",
+      "exerciseId": "LAT_PULLDOWN",
+      "nameEs": "Jalón al pecho con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL",
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "banda con asas",
+      "auxiliaryEquipment": [
+        "anclaje alto"
+      ],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": true,
+      "anchorHeightOptions": [
+        "HIGH"
+      ],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "PULL_UP.PRONATED",
+      "exerciseId": "PULL_UP",
+      "nameEs": "Dominada con agarre pronado",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra de dominadas",
+      "auxiliaryEquipment": [
+        "barra"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "PULL_UP.SUPINATED",
+      "exerciseId": "PULL_UP",
+      "nameEs": "Dominada con agarre supinado",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "SUPINATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra de dominadas",
+      "auxiliaryEquipment": [
+        "barra"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "PULL_UP.NEUTRAL",
+      "exerciseId": "PULL_UP",
+      "nameEs": "Dominada con agarre neutro",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asas paralelas",
+      "auxiliaryEquipment": [
+        "asas paralelas"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "PULL_UP.ASSISTED_MACHINE",
+      "exerciseId": "PULL_UP",
+      "nameEs": "Dominada asistida en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED",
+        "SUPINATED",
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "máquina asistida"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "ASSISTANCE_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "PULL_UP.BAND_ASSISTED",
+      "exerciseId": "PULL_UP",
+      "nameEs": "Dominada asistida con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "BY_ATTACHMENT"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra+banda",
+      "auxiliaryEquipment": [
+        "barra de dominadas"
+      ],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "REAR_DELT_SCAPULA.FACE_PULL_CABLE",
+      "exerciseId": "REAR_DELT_SCAPULA",
+      "nameEs": "Face pull en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "cuerda",
+      "auxiliaryEquipment": [
+        "cuerda"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "REAR_DELT_SCAPULA.REVERSE_FLY_MACHINE",
+      "exerciseId": "REAR_DELT_SCAPULA",
+      "nameEs": "Aperturas inversas en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asas/almohadillas",
+      "auxiliaryEquipment": [
+        "peck deck inverso"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "REAR_DELT_SCAPULA.DUMBBELL_FLY",
+      "exerciseId": "REAR_DELT_SCAPULA",
+      "nameEs": "Pájaros con mancuernas",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuernas",
+      "auxiliaryEquipment": [
+        "banco opcional"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "REAR_DELT_SCAPULA.BAND_PULL_APART",
+      "exerciseId": "REAR_DELT_SCAPULA",
+      "nameEs": "Aperturas con banda (band pull-apart)",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "WIDE"
+      ],
+      "attachment": "banda",
+      "auxiliaryEquipment": [],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "OVERHEAD_PRESS.BARBELL",
+      "exerciseId": "OVERHEAD_PRESS",
+      "nameEs": "Press militar con barra",
+      "equipmentOptions": [
+        "BARBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra recta",
+      "auxiliaryEquipment": [
+        "rack opcional"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "TOTAL_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "OVERHEAD_PRESS.DUMBBELL",
+      "exerciseId": "OVERHEAD_PRESS",
+      "nameEs": "Press de hombros con mancuernas",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL",
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuernas",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "OVERHEAD_PRESS.MACHINE",
+      "exerciseId": "OVERHEAD_PRESS",
+      "nameEs": "Press de hombros en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL",
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "press de hombros"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "OVERHEAD_PRESS.CABLE_ONE_ARM",
+      "exerciseId": "OVERHEAD_PRESS",
+      "nameEs": "Press de hombro unilateral en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asa individual",
+      "auxiliaryEquipment": [
+        "asa individual"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "OVERHEAD_PRESS.BAND",
+      "exerciseId": "OVERHEAD_PRESS",
+      "nameEs": "Press de hombros con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "banda bajo pie",
+      "auxiliaryEquipment": [],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LATERAL_RAISE.DUMBBELL",
+      "exerciseId": "LATERAL_RAISE",
+      "nameEs": "Elevaciones laterales con mancuernas",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuernas",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LATERAL_RAISE.CABLE",
+      "exerciseId": "LATERAL_RAISE",
+      "nameEs": "Elevación lateral unilateral en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asa individual",
+      "auxiliaryEquipment": [
+        "asa individual"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LATERAL_RAISE.MACHINE",
+      "exerciseId": "LATERAL_RAISE",
+      "nameEs": "Elevaciones laterales en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "almohadilla/asas",
+      "auxiliaryEquipment": [
+        "elevación lateral"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LATERAL_RAISE.BAND",
+      "exerciseId": "LATERAL_RAISE",
+      "nameEs": "Elevaciones laterales con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "banda bajo pies",
+      "auxiliaryEquipment": [],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "BICEPS_CURL.DUMBBELL",
+      "exerciseId": "BICEPS_CURL",
+      "nameEs": "Curl de bíceps con mancuernas",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL",
+        "UNILATERAL",
+        "ALTERNATING"
+      ],
+      "gripOptions": [
+        "SUPINATED",
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "NARROW"
+      ],
+      "attachment": "mancuernas",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "BICEPS_CURL.CABLE",
+      "exerciseId": "BICEPS_CURL",
+      "nameEs": "Curl de bíceps en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL",
+        "UNILATERAL",
+        "ALTERNATING"
+      ],
+      "gripOptions": [
+        "SUPINATED",
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "NARROW"
+      ],
+      "attachment": "accesorio elegido",
+      "auxiliaryEquipment": [
+        "barra recta",
+        "EZ o cuerda"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "BICEPS_CURL.MACHINE",
+      "exerciseId": "BICEPS_CURL",
+      "nameEs": "Curl de bíceps en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL",
+        "UNILATERAL",
+        "ALTERNATING"
+      ],
+      "gripOptions": [
+        "SUPINATED",
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "NARROW"
+      ],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "curl de bíceps"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "BICEPS_CURL.BAND",
+      "exerciseId": "BICEPS_CURL",
+      "nameEs": "Curl de bíceps con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL",
+        "UNILATERAL",
+        "ALTERNATING"
+      ],
+      "gripOptions": [
+        "SUPINATED",
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "NARROW"
+      ],
+      "attachment": "banda con asas",
+      "auxiliaryEquipment": [],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "TRICEPS_EXTENSION.CABLE_PRESSDOWN",
+      "exerciseId": "TRICEPS_EXTENSION",
+      "nameEs": "Extensión de tríceps en polea alta",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED",
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "NARROW"
+      ],
+      "attachment": "cuerda/barra",
+      "auxiliaryEquipment": [
+        "cuerda o barra"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "TRICEPS_EXTENSION.OVERHEAD_CABLE",
+      "exerciseId": "TRICEPS_EXTENSION",
+      "nameEs": "Extensión de tríceps por encima de la cabeza en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "NARROW"
+      ],
+      "attachment": "cuerda",
+      "auxiliaryEquipment": [
+        "cuerda"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "TRICEPS_EXTENSION.DUMBBELL",
+      "exerciseId": "TRICEPS_EXTENSION",
+      "nameEs": "Extensión de tríceps con mancuerna",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL",
+        "UNILATERAL",
+        "ALTERNATING"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "NARROW"
+      ],
+      "attachment": "mancuerna",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "TRICEPS_EXTENSION.MACHINE",
+      "exerciseId": "TRICEPS_EXTENSION",
+      "nameEs": "Extensión de tríceps en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED",
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "NARROW"
+      ],
+      "attachment": "asas de máquina",
+      "auxiliaryEquipment": [
+        "extensión de tríceps"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "TRICEPS_EXTENSION.BAND",
+      "exerciseId": "TRICEPS_EXTENSION",
+      "nameEs": "Extensión de tríceps con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "NARROW"
+      ],
+      "attachment": "banda con asas",
+      "auxiliaryEquipment": [
+        "anclaje alto"
+      ],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": true,
+      "anchorHeightOptions": [
+        "HIGH"
+      ],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ANTI_EXTENSION.PLANK",
+      "exerciseId": "ANTI_EXTENSION",
+      "nameEs": "Plancha frontal",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "suelo",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "seconds",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ANTI_EXTENSION.DEAD_BUG",
+      "exerciseId": "ANTI_EXTENSION",
+      "nameEs": "Dead bug",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "ALTERNATING"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": null,
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "seconds",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ANTI_EXTENSION.ROLLOUT",
+      "exerciseId": "ANTI_EXTENSION",
+      "nameEs": "Rueda abdominal",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "rueda",
+      "auxiliaryEquipment": [
+        "rueda"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "seconds",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ANTI_EXTENSION.CABLE",
+      "exerciseId": "ANTI_EXTENSION",
+      "nameEs": "Anti-extensión en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED",
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "accesorio elegido",
+      "auxiliaryEquipment": [
+        "cuerda o barra"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ANTI_ROTATION_LATERAL.PALLOF_CABLE",
+      "exerciseId": "ANTI_ROTATION_LATERAL",
+      "nameEs": "Press Pallof en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asa individual",
+      "auxiliaryEquipment": [
+        "asa individual"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ANTI_ROTATION_LATERAL.PALLOF_BAND",
+      "exerciseId": "ANTI_ROTATION_LATERAL",
+      "nameEs": "Press Pallof con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "banda con asas",
+      "auxiliaryEquipment": [
+        "anclaje medio"
+      ],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": true,
+      "anchorHeightOptions": [
+        "MEDIUM"
+      ],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ANTI_ROTATION_LATERAL.SIDE_PLANK",
+      "exerciseId": "ANTI_ROTATION_LATERAL",
+      "nameEs": "Plancha lateral",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "suelo",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "seconds",
+      "perSide": true,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "ANTI_ROTATION_LATERAL.SUITCASE_CARRY",
+      "exerciseId": "ANTI_ROTATION_LATERAL",
+      "nameEs": "Paseo del granjero unilateral",
+      "equipmentOptions": [
+        "DUMBBELL",
+        "KETTLEBELL"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuerna/kettlebell",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "meters",
+      "perSide": true,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CONTROLLED_ROTATION.CABLE_CHOP_LIFT",
+      "exerciseId": "CONTROLLED_ROTATION",
+      "nameEs": "Rotación diagonal (chop o lift) en polea",
+      "equipmentOptions": [
+        "CABLE"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "asa/cuerda",
+      "auxiliaryEquipment": [
+        "asa o cuerda"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CONTROLLED_ROTATION.BAND_CHOP_LIFT",
+      "exerciseId": "CONTROLLED_ROTATION",
+      "nameEs": "Rotación diagonal (chop o lift) con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "banda con asas",
+      "auxiliaryEquipment": [
+        "anclaje alto o bajo"
+      ],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": true,
+      "anchorHeightOptions": [
+        "HIGH",
+        "LOW"
+      ],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LUMBAR_CONTROL.BIRD_DOG",
+      "exerciseId": "LUMBAR_CONTROL",
+      "nameEs": "Bird dog",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "ALTERNATING"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "suelo",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "seconds",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "LUMBAR_CONTROL.BACK_EXTENSION_LIGHT",
+      "exerciseId": "LUMBAR_CONTROL",
+      "nameEs": "Extensión lumbar suave en banco 45°",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": null,
+      "auxiliaryEquipment": [
+        "banco 45°"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "seconds",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CALF_RAISE.STANDING_MACHINE",
+      "exerciseId": "CALF_RAISE",
+      "nameEs": "Elevación de talones de pie en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "almohadillas/asas",
+      "auxiliaryEquipment": [
+        "elevación de pie"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CALF_RAISE.SEATED_MACHINE",
+      "exerciseId": "CALF_RAISE",
+      "nameEs": "Elevación de talones sentado en máquina",
+      "equipmentOptions": [
+        "MACHINE"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "almohadilla",
+      "auxiliaryEquipment": [
+        "elevación sentado"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "DISPLAYED_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CALF_RAISE.DUMBBELL",
+      "exerciseId": "CALF_RAISE",
+      "nameEs": "Elevación de talones con mancuerna",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL",
+        "UNILATERAL",
+        "ALTERNATING"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuerna",
+      "auxiliaryEquipment": [
+        "escalón opcional"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "CALF_RAISE.BAND",
+      "exerciseId": "CALF_RAISE",
+      "nameEs": "Elevación de talones con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "BILATERAL",
+        "UNILATERAL",
+        "ALTERNATING"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "banda en antepié",
+      "auxiliaryEquipment": [],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "TIBIAL_FOOT_CONTROL.TIB_RAISE",
+      "exerciseId": "TIBIAL_FOOT_CONTROL",
+      "nameEs": "Elevación de puntas de los pies",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "pared opcional",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "TIBIAL_FOOT_CONTROL.BAND_DORSIFLEXION",
+      "exerciseId": "TIBIAL_FOOT_CONTROL",
+      "nameEs": "Dorsiflexión de tobillo con banda",
+      "equipmentOptions": [
+        "BAND"
+      ],
+      "lateralityOptions": [
+        "UNILATERAL"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "banda en antepié",
+      "auxiliaryEquipment": [
+        "anclaje bajo"
+      ],
+      "bandType": [
+        "BAND"
+      ],
+      "anchorRequired": true,
+      "anchorHeightOptions": [
+        "LOW"
+      ],
+      "doseUnit": "reps",
+      "perSide": true,
+      "loadMode": "BAND_LABEL",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "TIBIAL_FOOT_CONTROL.SHORT_FOOT",
+      "exerciseId": "TIBIAL_FOOT_CONTROL",
+      "nameEs": "Ejercicio de pie corto",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL",
+        "UNILATERAL",
+        "ALTERNATING"
+      ],
+      "gripOptions": [],
+      "gripWidthOptions": [],
+      "attachment": "suelo",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "reps",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "GRIP_CARRY.FARMER",
+      "exerciseId": "GRIP_CARRY",
+      "nameEs": "Paseo del granjero",
+      "equipmentOptions": [
+        "DUMBBELL",
+        "KETTLEBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuernas/kettlebells",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "meters",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "GRIP_CARRY.HOLD",
+      "exerciseId": "GRIP_CARRY",
+      "nameEs": "Agarre estático con mancuernas",
+      "equipmentOptions": [
+        "DUMBBELL"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "mancuernas",
+      "auxiliaryEquipment": [],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "seconds",
+      "perSide": false,
+      "loadMode": "IMPLEMENT_KG",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "GRIP_CARRY.HANG",
+      "exerciseId": "GRIP_CARRY",
+      "nameEs": "Suspensión en barra",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "PRONATED",
+        "SUPINATED",
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "barra/asas",
+      "auxiliaryEquipment": [
+        "barra"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "seconds",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    },
+    {
+      "id": "GRIP_CARRY.TOWEL_HANG",
+      "exerciseId": "GRIP_CARRY",
+      "nameEs": "Suspensión con toalla",
+      "equipmentOptions": [
+        "BODYWEIGHT"
+      ],
+      "lateralityOptions": [
+        "BILATERAL"
+      ],
+      "gripOptions": [
+        "NEUTRAL"
+      ],
+      "gripWidthOptions": [
+        "MEDIUM"
+      ],
+      "attachment": "toalla",
+      "auxiliaryEquipment": [
+        "barra",
+        "toalla"
+      ],
+      "bandType": [],
+      "anchorRequired": false,
+      "anchorHeightOptions": [],
+      "doseUnit": "seconds",
+      "perSide": false,
+      "loadMode": "BODYWEIGHT",
+      "origin": "SYSTEM",
+      "active": true
+    }
+  ]
+}
