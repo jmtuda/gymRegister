@@ -7,7 +7,7 @@ import { createCatalogRepository } from '../src/data/catalogRepository.ts';
 import { seedSystemCatalog } from '../src/data/catalogSeed.ts';
 import { initializeDatabase } from '../src/data/database.ts';
 import { createManualSessionRepository } from '../src/data/manualSessionRepository.ts';
-import type { Database } from '../src/data/types.ts';
+import type { Database, DatabaseConnection } from '../src/data/types.ts';
 import type { CatalogSeedData } from '../src/domain/catalog.ts';
 
 function createDatabase(): { sqlite: DatabaseSync; database: Database } {
@@ -19,9 +19,9 @@ function createDatabase(): { sqlite: DatabaseSync; database: Database } {
       (sqlite.prepare(sql).get(...params as SQLInputValue[]) as T | undefined) ?? null,
     getAllAsync: async <T>(sql: string, ...params: unknown[]) =>
       sqlite.prepare(sql).all(...params as SQLInputValue[]) as T[],
-    withTransactionAsync: async (task) => {
+    withExclusiveTransactionAsync: async (task) => {
       sqlite.exec('BEGIN');
-      try { await task(); sqlite.exec('COMMIT'); } catch (error) { sqlite.exec('ROLLBACK'); throw error; }
+      try { await task(database); sqlite.exec('COMMIT'); } catch (error) { sqlite.exec('ROLLBACK'); throw error; }
     },
   };
   return { sqlite, database };
@@ -46,13 +46,14 @@ test('crea y recupera la sesión draft al reabrir el flujo', async () => {
   const { sqlite, sessions } = await setup();
   const created = await sessions.createDraft('2026-03-01T10:00:00.000Z');
   assert.equal(created.status, 'draft');
-  const reopened = createManualSessionRepository({
+  const reopenedDatabase: Database = {
     execAsync: async (sql) => sqlite.exec(sql),
     runAsync: async (sql, ...params) => sqlite.prepare(sql).run(...params as SQLInputValue[]),
     getFirstAsync: async <T>(sql: string, ...params: unknown[]) => (sqlite.prepare(sql).get(...params as SQLInputValue[]) as T | undefined) ?? null,
     getAllAsync: async <T>(sql: string, ...params: unknown[]) => sqlite.prepare(sql).all(...params as SQLInputValue[]) as T[],
-    withTransactionAsync: async (task) => { sqlite.exec('BEGIN'); try { await task(); sqlite.exec('COMMIT'); } catch (error) { sqlite.exec('ROLLBACK'); throw error; } },
-  });
+    withExclusiveTransactionAsync: async (task) => { sqlite.exec('BEGIN'); try { await task(reopenedDatabase); sqlite.exec('COMMIT'); } catch (error) { sqlite.exec('ROLLBACK'); throw error; } },
+  };
+  const reopened = createManualSessionRepository(reopenedDatabase);
   assert.deepEqual(await reopened.getCurrentDraft(), created);
   sqlite.close();
 });
@@ -147,6 +148,46 @@ test('reordena atómicamente sin duplicar order_index', async () => {
   assert.deepEqual(reordered.map((item) => [item.id, item.orderIndex]), [['third', 0], ['first', 1], ['second', 2]]);
   await assert.rejects(sessions.reorderExercises(session.id, ['first', 'missing', 'third']), /exactamente/);
   assert.deepEqual((await sessions.listSessionExercises(session.id)).map((item) => item.id), ['third', 'first', 'second']);
+  sqlite.close();
+});
+
+test('un fallo intermedio en el handle exclusivo revierte por completo la reordenación', async () => {
+  const { sqlite, database, sessions } = await setup();
+  const session = await sessions.createDraft();
+  await addBackSquat(sessions, session.id, 'first');
+  await addBackSquat(sessions, session.id, 'second');
+  await addBackSquat(sessions, session.id, 'third');
+
+  const failingDatabase: Database = {
+    ...database,
+    withExclusiveTransactionAsync: async (task) => {
+      let positionWrites = 0;
+      const transaction: DatabaseConnection = {
+        execAsync: database.execAsync,
+        getFirstAsync: database.getFirstAsync,
+        getAllAsync: database.getAllAsync,
+        runAsync: async (sql, ...params) => {
+          if (sql.includes('UPDATE session_exercises SET order_index = ?')) {
+            positionWrites += 1;
+            if (positionWrites === 2) throw new Error('fallo intermedio simulado');
+          }
+          return database.runAsync(sql, ...params);
+        },
+      };
+      sqlite.exec('BEGIN');
+      try { await task(transaction); sqlite.exec('COMMIT'); }
+      catch (error) { sqlite.exec('ROLLBACK'); throw error; }
+    },
+  };
+  const failingSessions = createManualSessionRepository(failingDatabase);
+  await assert.rejects(
+    failingSessions.reorderExercises(session.id, ['third', 'second', 'first']),
+    /fallo intermedio simulado/,
+  );
+  assert.deepEqual(
+    (await sessions.listSessionExercises(session.id)).map((item) => [item.id, item.orderIndex]),
+    [['first', 0], ['second', 1], ['third', 2]],
+  );
   sqlite.close();
 });
 

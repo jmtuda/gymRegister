@@ -1,6 +1,6 @@
 import { createUuid } from '../domain/id.ts';
 import type { SessionExercise, TrainingSession } from '../domain/training.ts';
-import type { Database } from './types.ts';
+import type { Database, DatabaseConnection } from './types.ts';
 
 type SessionRow = {
   id: string; status: TrainingSession['status']; note: string | null; created_at: string;
@@ -57,7 +57,7 @@ function resolveSelection(label: string, options: string[], selected?: string | 
   return selected;
 }
 
-async function requireDraft(database: Database, sessionId: string): Promise<void> {
+async function requireDraft(database: DatabaseConnection, sessionId: string): Promise<void> {
   const row = await database.getFirstAsync<{ status: string }>(
     'SELECT status FROM training_sessions WHERE id = ?', sessionId,
   );
@@ -65,7 +65,14 @@ async function requireDraft(database: Database, sessionId: string): Promise<void
   if (row.status !== 'draft') throw new Error('Solo se puede modificar una sesión en borrador.');
 }
 
-async function compactOrder(database: Database, sessionId: string, orderedIds: string[]) {
+async function listExercises(database: DatabaseConnection, sessionId: string): Promise<SessionExercise[]> {
+  const rows = await database.getAllAsync<SessionExerciseRow>(
+    'SELECT * FROM session_exercises WHERE session_id = ? ORDER BY order_index, id', sessionId,
+  );
+  return rows.map(mapSessionExercise);
+}
+
+async function compactOrder(database: DatabaseConnection, sessionId: string, orderedIds: string[]) {
   const temporary = await database.getFirstAsync<{ offset: number }>(
     'SELECT COALESCE(MAX(order_index), -1) + 1 AS offset FROM session_exercises WHERE session_id = ?',
     sessionId,
@@ -136,52 +143,48 @@ export function createManualSessionRepository(database: Database) {
     },
 
     async listSessionExercises(sessionId: string): Promise<SessionExercise[]> {
-      const rows = await database.getAllAsync<SessionExerciseRow>(
-        'SELECT * FROM session_exercises WHERE session_id = ? ORDER BY order_index, id', sessionId,
-      );
-      return rows.map(mapSessionExercise);
+      return listExercises(database, sessionId);
     },
 
     async addExercise(input: AddSessionExerciseInput): Promise<SessionExercise> {
-      await requireDraft(database, input.sessionId);
-      const catalog = await database.getFirstAsync<CatalogSelectionRow>(
-        `SELECT exercises.id AS exercise_id, exercises.name_es AS exercise_name,
-          exercises.active AS exercise_active, configurations.id AS configuration_id,
-          configurations.name_es AS configuration_name, configurations.active AS configuration_active,
-          configurations.exercise_id AS configuration_exercise_id,
-          configurations.equipment_options, configurations.laterality_options,
-          configurations.grip_options, configurations.grip_width_options
-         FROM exercises
-         JOIN exercise_configurations AS configurations ON configurations.id = ?
-         WHERE exercises.id = ?`,
-        input.configurationId, input.exerciseId,
-      );
-      if (!catalog || catalog.configuration_exercise_id !== input.exerciseId) {
-        throw new Error('La configuración no pertenece al ejercicio.');
-      }
-      if (catalog.exercise_active !== 1 || catalog.configuration_active !== 1) {
-        throw new Error('Solo se pueden añadir elementos activos.');
-      }
-      const selectedEquipment = resolveSelection(
-        'Equipamiento', parseOptions(catalog.equipment_options), input.selectedEquipment,
-      );
-      const selectedLaterality = resolveSelection(
-        'Lateralidad', parseOptions(catalog.laterality_options), input.selectedLaterality,
-      );
-      const selectedGrip = resolveSelection('Agarre', parseOptions(catalog.grip_options), input.selectedGrip);
-      const selectedGripWidth = resolveSelection(
-        'Anchura de agarre', parseOptions(catalog.grip_width_options), input.selectedGripWidth,
-      );
       const id = input.id ?? createUuid();
       const now = input.now ?? new Date().toISOString();
 
-      await database.withTransactionAsync(async () => {
-        await requireDraft(database, input.sessionId);
-        const order = await database.getFirstAsync<{ next_index: number }>(
+      await database.withExclusiveTransactionAsync(async (transaction) => {
+        await requireDraft(transaction, input.sessionId);
+        const catalog = await transaction.getFirstAsync<CatalogSelectionRow>(
+          `SELECT exercises.id AS exercise_id, exercises.name_es AS exercise_name,
+            exercises.active AS exercise_active, configurations.id AS configuration_id,
+            configurations.name_es AS configuration_name, configurations.active AS configuration_active,
+            configurations.exercise_id AS configuration_exercise_id,
+            configurations.equipment_options, configurations.laterality_options,
+            configurations.grip_options, configurations.grip_width_options
+           FROM exercises
+           JOIN exercise_configurations AS configurations ON configurations.id = ?
+           WHERE exercises.id = ?`,
+          input.configurationId, input.exerciseId,
+        );
+        if (!catalog || catalog.configuration_exercise_id !== input.exerciseId) {
+          throw new Error('La configuración no pertenece al ejercicio.');
+        }
+        if (catalog.exercise_active !== 1 || catalog.configuration_active !== 1) {
+          throw new Error('Solo se pueden añadir elementos activos.');
+        }
+        const selectedEquipment = resolveSelection(
+          'Equipamiento', parseOptions(catalog.equipment_options), input.selectedEquipment,
+        );
+        const selectedLaterality = resolveSelection(
+          'Lateralidad', parseOptions(catalog.laterality_options), input.selectedLaterality,
+        );
+        const selectedGrip = resolveSelection('Agarre', parseOptions(catalog.grip_options), input.selectedGrip);
+        const selectedGripWidth = resolveSelection(
+          'Anchura de agarre', parseOptions(catalog.grip_width_options), input.selectedGripWidth,
+        );
+        const order = await transaction.getFirstAsync<{ next_index: number }>(
           'SELECT COALESCE(MAX(order_index) + 1, 0) AS next_index FROM session_exercises WHERE session_id = ?',
           input.sessionId,
         );
-        await database.runAsync(
+        await transaction.runAsync(
           `INSERT INTO session_exercises
             (id, session_id, exercise_id, configuration_id, exercise_name_snapshot,
              configuration_name_snapshot, order_index, selected_equipment, selected_laterality,
@@ -196,40 +199,40 @@ export function createManualSessionRepository(database: Database) {
     },
 
     async removeExercise(sessionId: string, exerciseId: string): Promise<void> {
-      await database.withTransactionAsync(async () => {
-        await requireDraft(database, sessionId);
-        const existing = await this.listSessionExercises(sessionId);
+      await database.withExclusiveTransactionAsync(async (transaction) => {
+        await requireDraft(transaction, sessionId);
+        const existing = await listExercises(transaction, sessionId);
         if (!existing.some((item) => item.id === exerciseId)) throw new Error('Ejercicio de sesión no encontrado.');
-        await database.runAsync(
+        await transaction.runAsync(
           'DELETE FROM session_exercises WHERE id = ? AND session_id = ?', exerciseId, sessionId,
         );
-        await compactOrder(database, sessionId, existing.filter((item) => item.id !== exerciseId).map((item) => item.id));
+        await compactOrder(transaction, sessionId, existing.filter((item) => item.id !== exerciseId).map((item) => item.id));
       });
     },
 
     async reorderExercises(sessionId: string, orderedIds: string[]): Promise<SessionExercise[]> {
-      await database.withTransactionAsync(async () => {
-        await requireDraft(database, sessionId);
-        const existing = await this.listSessionExercises(sessionId);
+      await database.withExclusiveTransactionAsync(async (transaction) => {
+        await requireDraft(transaction, sessionId);
+        const existing = await listExercises(transaction, sessionId);
         const currentIds = existing.map((item) => item.id);
         if (orderedIds.length !== currentIds.length
           || new Set(orderedIds).size !== orderedIds.length
           || orderedIds.some((id) => !currentIds.includes(id))) {
           throw new Error('El nuevo orden debe contener exactamente los ejercicios de la sesión.');
         }
-        await compactOrder(database, sessionId, orderedIds);
+        await compactOrder(transaction, sessionId, orderedIds);
       });
       return this.listSessionExercises(sessionId);
     },
 
     async startSession(sessionId: string, now = new Date().toISOString()): Promise<TrainingSession> {
-      await database.withTransactionAsync(async () => {
-        await requireDraft(database, sessionId);
-        const count = await database.getFirstAsync<{ count: number }>(
+      await database.withExclusiveTransactionAsync(async (transaction) => {
+        await requireDraft(transaction, sessionId);
+        const count = await transaction.getFirstAsync<{ count: number }>(
           'SELECT COUNT(*) AS count FROM session_exercises WHERE session_id = ?', sessionId,
         );
         if (Number(count?.count ?? 0) === 0) throw new Error('Añade al menos un ejercicio antes de iniciar.');
-        await database.runAsync(
+        await transaction.runAsync(
           `UPDATE training_sessions SET status = 'in_progress', started_at = ?, updated_at = ?
            WHERE id = ? AND status = 'draft'`, now, now, sessionId,
         );
