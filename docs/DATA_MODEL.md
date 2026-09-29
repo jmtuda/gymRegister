@@ -164,7 +164,9 @@ Las sesiones completadas tampoco deben depender de que una configuración siga a
 
 ### CSV
 
-Formato recomendado: una fila por serie.
+Una fila por serie confirmada. Las sesiones y ejercicios sin series no generan
+filas ficticias. El orden es sesión, ejercicio y serie, y los valores de texto se
+escapan conforme a CSV UTF-8.
 
 Columnas mínimas:
 
@@ -189,15 +191,18 @@ Columnas mínimas:
 
 ### JSON
 
-Debe conservar la estructura completa:
+Es un documento con `exportVersion = 1`, `generatedAt` ISO y la estructura completa:
 
 ```text
-session
+sessions[]
+  ├── session
   └── exercises[]
        └── sets[]
 ```
 
-El JSON será el formato de mayor fidelidad para backup/restauración.
+El JSON conserva también sesiones y ejercicios sin series. Será el formato de
+mayor fidelidad para una futura tarea de backup/restauración; TASK-006 no incluye
+importación.
 
 ## Preparación para Supabase
 

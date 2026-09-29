@@ -10,13 +10,16 @@ type ShareFile = typeof shareExportFile;
 export function createExportService(database: Database, shareFile: ShareFile = shareExportFile) {
   const repository = createExportRepository(database);
   return {
-    async export(format: ExportFormat, exportedAt = new Date().toISOString()) {
+    async export(format: ExportFormat, generatedAt = new Date().toISOString()) {
       const source = await repository.readCompletedSessions();
-      const document = buildExportDocument(source, exportedAt);
+      if (source.length === 0) {
+        throw new Error('No hay sesiones completadas para exportar.');
+      }
+      const document = buildExportDocument(source, generatedAt);
       const content = format === 'csv'
         ? serializeExportCsv(document)
         : serializeExportJson(document);
-      const uri = await shareFile(format, content, new Date(exportedAt));
+      const uri = await shareFile(format, content, new Date(generatedAt));
       return { content, document, uri };
     },
   };

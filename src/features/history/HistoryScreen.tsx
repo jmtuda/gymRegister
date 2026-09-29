@@ -96,7 +96,13 @@ export function HistoryScreen() {
         <Text style={styles.subtitle}>Consulta exactamente lo que registraste.</Text>
         <Pressable
           disabled={exporting !== null} style={[styles.exportButton, exporting !== null && styles.disabledButton]}
-          onPress={() => setExportOpen(true)}
+          onPress={() => {
+            if (sessions.length === 0) {
+              Alert.alert('No hay historial', 'No hay sesiones completadas para exportar.');
+              return;
+            }
+            setExportOpen(true);
+          }}
         >
           {exporting !== null && <ActivityIndicator color="#fff" />}
           <Text style={styles.exportButtonText}>{exporting ? `Generando ${exporting.toUpperCase()}…` : 'Exportar historial'}</Text>

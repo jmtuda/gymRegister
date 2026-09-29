@@ -26,7 +26,8 @@ function mapExercise(value: ExportSourceSession['exercises'][number]): ExportExe
     session_id: value.sessionId,
     exercise_id: value.exerciseId,
     configuration_id: value.configurationId,
-    group: value.groupName,
+    group_id: value.groupId,
+    group_name: value.groupName,
     exercise_name_snapshot: value.exerciseNameSnapshot,
     configuration_name_snapshot: value.configurationNameSnapshot,
     order_index: value.orderIndex,
@@ -51,13 +52,19 @@ function mapSession(value: ExportSourceSession): ExportSession {
     started_at: session.startedAt,
     completed_at: session.completedAt,
     updated_at: session.updatedAt,
-    exercises: value.exercises.map(mapExercise),
   };
 }
 
 export function buildExportDocument(
   sessions: ExportSourceSession[],
-  exportedAt = new Date().toISOString(),
+  generatedAt = new Date().toISOString(),
 ): ExportDocument {
-  return { schemaVersion: 1, exportedAt, sessions: sessions.map(mapSession) };
+  return {
+    exportVersion: 1,
+    generatedAt,
+    sessions: sessions.map((value) => ({
+      session: mapSession(value),
+      exercises: value.exercises.map(mapExercise),
+    })),
+  };
 }

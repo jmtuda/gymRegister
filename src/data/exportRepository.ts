@@ -12,14 +12,18 @@ export function createExportRepository(database: Database) {
         const detail = await history.getCompletedSessionDetail(id);
         if (!detail) throw new Error('No se pudo reconstruir una sesión completada.');
         const exercises = await Promise.all(detail.exercises.map(async (exercise) => {
-          const group = await database.getFirstAsync<{ name_es: string }>(
-            `SELECT exercise_groups.name_es
+          const group = await database.getFirstAsync<{ id: string; name_es: string }>(
+            `SELECT exercise_groups.id, exercise_groups.name_es
              FROM exercises
              JOIN exercise_groups ON exercise_groups.id = exercises.group_id
              WHERE exercises.id = ?`,
             exercise.exerciseId,
           );
-          return { ...exercise, groupName: group?.name_es ?? null };
+          return {
+            ...exercise,
+            groupId: group?.id ?? null,
+            groupName: group?.name_es ?? null,
+          };
         }));
         return { session: detail.session, exercises };
       }));
