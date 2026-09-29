@@ -136,6 +136,43 @@ test('no se permite modificar elementos SYSTEM mediante operaciones CUSTOM', asy
   sqlite.close();
 });
 
+test('rechaza campos CUSTOM obligatorios vacíos sin escribir datos parciales', async () => {
+  const { sqlite, database } = await seededDatabase();
+  const repository = createCatalogRepository(database);
+  const beforeExercises = sqlite.prepare("SELECT COUNT(*) AS count FROM exercises WHERE origin = 'CUSTOM'").get()?.count;
+  await assert.rejects(repository.createCustomExercise({
+    id: 'EMPTY_NAME', groupId: 'CHEST', nameEs: '   ',
+  }), /nombre es obligatorio/);
+  await assert.rejects(repository.createCustomExercise({
+    id: 'BAD_GROUP', groupId: 'MISSING', nameEs: 'Ejercicio',
+  }), /Grupo no encontrado/);
+  const exercise = await repository.createCustomExercise({
+    id: 'VALID_CUSTOM', groupId: 'CHEST', nameEs: 'Válido',
+  });
+  await assert.rejects(repository.updateCustomExercise(exercise.id, { nameEs: ' ' }), /nombre es obligatorio/);
+  await assert.rejects(repository.createCustomConfiguration({
+    id: 'EMPTY_CONFIG_NAME', exerciseId: exercise.id, nameEs: ' ',
+    equipmentOptions: ['MACHINE'], doseUnit: 'reps', loadMode: 'DISPLAYED_KG',
+  }), /nombre es obligatorio/);
+  await assert.rejects(repository.createCustomConfiguration({
+    id: 'EMPTY_EQUIPMENT', exerciseId: exercise.id, nameEs: 'Sin equipo',
+    equipmentOptions: [], doseUnit: 'reps', loadMode: 'NONE',
+  }), /al menos un equipamiento/);
+  const configuration = await repository.createCustomConfiguration({
+    id: 'VALID_CONFIG', exerciseId: exercise.id, nameEs: 'Configuración válida',
+    equipmentOptions: ['MACHINE'], doseUnit: 'reps', loadMode: 'DISPLAYED_KG',
+  });
+  await assert.rejects(repository.updateCustomConfiguration(configuration.id, {
+    equipmentOptions: [],
+  }), /al menos un equipamiento/);
+  assert.equal(
+    sqlite.prepare("SELECT COUNT(*) AS count FROM exercises WHERE origin = 'CUSTOM'").get()?.count,
+    Number(beforeExercises) + 1,
+  );
+  assert.equal(sqlite.prepare("SELECT COUNT(*) AS count FROM exercise_configurations WHERE origin = 'CUSTOM'").get()?.count, 1);
+  sqlite.close();
+});
+
 test('los campos no aplicables no generan filas de detalle para la UI', () => {
   const configuration = {
     id: 'config', exerciseId: 'exercise', nameEs: 'Sin campos opcionales',

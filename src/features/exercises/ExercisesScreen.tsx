@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet,
   Text, TextInput, View,
@@ -109,6 +109,8 @@ export function ExercisesScreen() {
   const [exerciseForm, setExerciseForm] = useState<ExerciseForm>(emptyExercise());
   const [configurationEditor, setConfigurationEditor] = useState<ExerciseConfiguration | 'new' | null>(null);
   const [configurationForm, setConfigurationForm] = useState<ConfigurationForm>(emptyConfiguration());
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
 
   const loadGroups = useCallback(async () => {
     setLoading(true);
@@ -145,6 +147,8 @@ export function ExercisesScreen() {
     if (!exerciseForm.groupId || !exerciseForm.nameEs.trim()) {
       Alert.alert('Faltan datos', 'Selecciona un grupo e introduce un nombre.'); return;
     }
+    if (savingRef.current) return;
+    savingRef.current = true; setSaving(true);
     try {
       const input = {
         groupId: exerciseForm.groupId, nameEs: exerciseForm.nameEs,
@@ -158,6 +162,7 @@ export function ExercisesScreen() {
       await loadGroups();
       if (currentGroup) await openGroup(currentGroup);
     } catch (reason) { Alert.alert('No se pudo guardar', reason instanceof Error ? reason.message : 'Error inesperado.'); }
+    finally { savingRef.current = false; setSaving(false); }
   };
 
   const startConfigurationEditor = (value: ExerciseConfiguration | 'new') => {
@@ -176,6 +181,8 @@ export function ExercisesScreen() {
     if (!exercise || !configurationForm.nameEs.trim() || configurationForm.equipmentOptions.length === 0) {
       Alert.alert('Faltan datos', 'Introduce un nombre y selecciona equipamiento.'); return;
     }
+    if (savingRef.current) return;
+    savingRef.current = true; setSaving(true);
     const input: CreateCustomConfigurationInput = {
       exerciseId: exercise.id, nameEs: configurationForm.nameEs,
       equipmentOptions: configurationForm.equipmentOptions,
@@ -191,14 +198,17 @@ export function ExercisesScreen() {
       else if (configurationEditor) await repository.updateCustomConfiguration(configurationEditor.id, input);
       setConfigurationEditor(null); await openExercise(exercise);
     } catch (reason) { Alert.alert('No se pudo guardar', reason instanceof Error ? reason.message : 'Error inesperado.'); }
+    finally { savingRef.current = false; setSaving(false); }
   };
 
   const deactivateExercise = (value: Exercise) => Alert.alert(
     'Desactivar ejercicio', `¿Desactivar “${value.nameEs}”?`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Desactivar', style: 'destructive', onPress: () => void (async () => {
-        await repository.setCustomExerciseActive(value.id, false);
-        if (group) await openGroup(group); await loadGroups();
+        try {
+          await repository.setCustomExerciseActive(value.id, false);
+          if (group) await openGroup(group); await loadGroups();
+        } catch (reason) { Alert.alert('No se pudo desactivar', reason instanceof Error ? reason.message : 'Error inesperado.'); }
       })() },
     ],
   );
@@ -206,8 +216,10 @@ export function ExercisesScreen() {
     'Desactivar configuración', `¿Desactivar “${value.nameEs}”?`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Desactivar', style: 'destructive', onPress: () => void (async () => {
-        await repository.setCustomConfigurationActive(value.id, false);
-        if (exercise) await openExercise(exercise);
+        try {
+          await repository.setCustomConfigurationActive(value.id, false);
+          if (exercise) await openExercise(exercise);
+        } catch (reason) { Alert.alert('No se pudo desactivar', reason instanceof Error ? reason.message : 'Error inesperado.'); }
       })() },
     ],
   );
@@ -275,7 +287,7 @@ export function ExercisesScreen() {
         <Field label="Patrón técnico (opcional)" value={exerciseForm.technicalPattern} onChangeText={(technicalPattern) => setExerciseForm((old) => ({ ...old, technicalPattern }))} />
         <Field label="Músculos principales (separados por comas)" value={exerciseForm.primary} onChangeText={(primary) => setExerciseForm((old) => ({ ...old, primary }))} />
         <Field label="Músculos secundarios (separados por comas)" value={exerciseForm.secondary} onChangeText={(secondary) => setExerciseForm((old) => ({ ...old, secondary }))} />
-        <Pressable style={styles.primaryButton} onPress={() => void saveExercise()}><Text style={styles.primaryButtonText}>Guardar ejercicio</Text></Pressable>
+        <Pressable disabled={saving} style={[styles.primaryButton, saving && styles.buttonDisabled]} onPress={() => void saveExercise()}><Text style={styles.primaryButtonText}>{saving ? 'Guardando…' : 'Guardar ejercicio'}</Text></Pressable>
       </Sheet>
 
       <Sheet visible={configurationEditor !== null} title={configurationEditor === 'new' ? 'Nueva configuración' : 'Editar configuración'} onClose={() => setConfigurationEditor(null)}>
@@ -291,7 +303,7 @@ export function ExercisesScreen() {
         {configurationForm.anchorRequired && <Field label="Alturas de anclaje (separadas por comas)" value={configurationForm.anchorHeightOptions} onChangeText={(anchorHeightOptions) => setConfigurationForm((old) => ({ ...old, anchorHeightOptions }))} />}
         <Text style={styles.label}>Unidad de dosis *</Text><ChoiceChips values={DOSE_UNITS} selected={[configurationForm.doseUnit]} onChange={([doseUnit]) => setConfigurationForm((old) => ({ ...old, doseUnit: doseUnit as DoseUnit }))} />
         <Text style={styles.label}>Modo de carga *</Text><ChoiceChips values={LOAD_MODES} selected={[configurationForm.loadMode]} onChange={([loadMode]) => setConfigurationForm((old) => ({ ...old, loadMode: loadMode as LoadMode }))} />
-        <Pressable style={styles.primaryButton} onPress={() => void saveConfiguration()}><Text style={styles.primaryButtonText}>Guardar configuración</Text></Pressable>
+        <Pressable disabled={saving} style={[styles.primaryButton, saving && styles.buttonDisabled]} onPress={() => void saveConfiguration()}><Text style={styles.primaryButtonText}>{saving ? 'Guardando…' : 'Guardar configuración'}</Text></Pressable>
       </Sheet>
     </SafeAreaView>
   );
@@ -305,6 +317,7 @@ const styles = StyleSheet.create({
   card: { alignItems: 'center', backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: 16, borderWidth: 1, flexDirection: 'row', padding: 16 },
   cardBody: { flex: 1 }, cardTitle: { color: '#0f172a', fontSize: 17, fontWeight: '700' }, muted: { color: '#64748b', marginTop: 4 }, chevron: { color: '#0891b2', fontSize: 28, marginLeft: 8 },
   primaryButton: { alignItems: 'center', backgroundColor: '#0e7490', borderRadius: 12, marginBottom: 8, padding: 14 }, primaryButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  buttonDisabled: { opacity: 0.5 },
   actions: { alignItems: 'flex-end', gap: 8, marginLeft: 12 }, inlineActions: { flexDirection: 'row', gap: 20, marginTop: 14 }, link: { color: '#0e7490', fontSize: 16, fontWeight: '700' }, danger: { color: '#b91c1c', fontWeight: '700' },
   configurationCard: { alignItems: 'stretch', flexDirection: 'column' }, detail: { color: '#475569', marginTop: 6 }, detailLabel: { color: '#334155', fontWeight: '700' },
   modalHeader: { alignItems: 'center', borderBottomColor: '#e2e8f0', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', padding: 18 }, modalTitle: { color: '#0f172a', fontSize: 22, fontWeight: '800' },

@@ -83,6 +83,20 @@ test('añade una configuración válida, guarda selecciones y snapshots obligato
   sqlite.close();
 });
 
+test('repetir el mismo intento de añadir ejercicio es idempotente', async () => {
+  const { sqlite, sessions } = await setup();
+  const session = await sessions.createDraft();
+  const input = {
+    id: 'same-add-attempt', sessionId: session.id,
+    exerciseId: 'BACK_SQUAT', configurationId: 'BACK_SQUAT.BARBELL',
+  };
+  const first = await sessions.addExercise(input);
+  const repeated = await sessions.addExercise(input);
+  assert.deepEqual(repeated, first);
+  assert.equal((await sessions.listSessionExercises(session.id)).length, 1);
+  sqlite.close();
+});
+
 test('rechaza selecciones que no pertenecen a la configuración', async () => {
   const { sqlite, sessions } = await setup();
   const session = await sessions.createDraft();

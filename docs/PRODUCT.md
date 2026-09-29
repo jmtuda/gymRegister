@@ -166,6 +166,10 @@ El detalle de sesión muestra:
 
 Solo los datos realmente confirmados cuentan como realizados.
 
+Desde esta pestaña se puede exportar todo el historial completado en CSV o JSON y
+abrir la hoja nativa para compartir o guardar el archivo. La exportación funciona
+también sin sesiones: CSV conserva su cabecera y JSON devuelve una lista vacía.
+
 ## 3. Ejercicios
 
 Permite explorar el catálogo con el mismo flujo:

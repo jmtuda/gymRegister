@@ -121,7 +121,7 @@ test('RIR fuera de 0-5 se rechaza', async () => {
   await assert.rejects(sets.createSet({
     id: 'bad-rir', sessionExerciseId: exercise.id, setIndex: 0, doseUnit: 'reps',
     doseValue: 8, loadMode: 'NONE', rir: 6,
-  }), /CHECK constraint failed/);
+  }), /RIR debe ser/);
   sqlite.close();
 });
 
@@ -131,7 +131,22 @@ test('dose_value menor o igual que cero se rechaza', async () => {
   await assert.rejects(sets.createSet({
     id: 'bad-dose', sessionExerciseId: exercise.id, setIndex: 0, doseUnit: 'reps',
     doseValue: 0, loadMode: 'NONE',
-  }), /CHECK constraint failed/);
+  }), /dosis debe ser mayor/);
+  sqlite.close();
+});
+
+test('carga inválida se rechaza antes de escribir y sin filtrar errores SQLite', async () => {
+  const { sqlite, database } = await migratedDatabase();
+  const { sets, exercise } = await createExerciseFixture(database, sqlite);
+  await assert.rejects(sets.createSet({
+    id: 'negative-load', sessionExerciseId: exercise.id, setIndex: 0,
+    doseUnit: 'reps', doseValue: 8, loadMode: 'TOTAL_KG', loadValue: -1,
+  }), /carga numérica mayor o igual/);
+  await assert.rejects(sets.createSet({
+    id: 'wrong-band', sessionExerciseId: exercise.id, setIndex: 0,
+    doseUnit: 'reps', doseValue: 8, loadMode: 'BAND_LABEL', loadValue: 10,
+  }), /etiqueta/);
+  assert.equal(sqlite.prepare('SELECT COUNT(*) AS count FROM performed_sets').get()?.count, 0);
   sqlite.close();
 });
 

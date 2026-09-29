@@ -56,8 +56,12 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
   const [timer, dispatchTimer] = useReducer(restTimerReducer, INITIAL_REST_TIMER);
 
   const loadSets = useCallback(async () => {
-    const entries = await Promise.all(items.map(async (item) => [item.id, await execution.listSets(item.id)] as const));
-    setSets(Object.fromEntries(entries));
+    try {
+      const entries = await Promise.all(items.map(async (item) => [item.id, await execution.listSets(item.id)] as const));
+      setSets(Object.fromEntries(entries));
+    } catch (reason) {
+      Alert.alert('No se pudieron cargar las series', reason instanceof Error ? reason.message : 'Error inesperado.');
+    }
   }, [execution, items]);
   useEffect(() => { void loadSets(); }, [loadSets]);
   useEffect(() => {
@@ -71,21 +75,25 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
   }, [timer.running]);
 
   const openNewSet = async (item: SessionExercise) => {
-    const value = await execution.getExecutionContext(item.id);
-    setContext(value);
-    setForm({
-      attemptId: createUuid(), editingId: null, dose: '', load: '', loadLabel: '', rir: '',
-      perSide: value.selected_laterality === 'UNILATERAL' || value.selected_laterality === 'ALTERNATING',
-    });
+    try {
+      const value = await execution.getExecutionContext(item.id);
+      setContext(value);
+      setForm({
+        attemptId: createUuid(), editingId: null, dose: '', load: '', loadLabel: '', rir: '',
+        perSide: value.selected_laterality === 'UNILATERAL' || value.selected_laterality === 'ALTERNATING',
+      });
+    } catch (reason) { Alert.alert('No se pudo abrir la serie', reason instanceof Error ? reason.message : 'Error inesperado.'); }
   };
   const openEditSet = async (item: SessionExercise, value: PerformedSet) => {
-    const currentContext = await execution.getExecutionContext(item.id);
-    setContext({ ...currentContext, dose_unit: value.doseUnit, load_mode: value.loadMode });
-    setForm({
-      attemptId: value.id, editingId: value.id, dose: String(value.doseValue),
-      load: value.loadValue === null ? '' : String(value.loadValue), loadLabel: value.loadLabel ?? '',
-      rir: value.rir === null ? '' : String(value.rir), perSide: value.perSide,
-    });
+    try {
+      const currentContext = await execution.getExecutionContext(item.id);
+      setContext({ ...currentContext, dose_unit: value.doseUnit, load_mode: value.loadMode });
+      setForm({
+        attemptId: value.id, editingId: value.id, dose: String(value.doseValue),
+        load: value.loadValue === null ? '' : String(value.loadValue), loadLabel: value.loadLabel ?? '',
+        rir: value.rir === null ? '' : String(value.rir), perSide: value.perSide,
+      });
+    } catch (reason) { Alert.alert('No se pudo editar la serie', reason instanceof Error ? reason.message : 'Error inesperado.'); }
   };
   const saveSet = async () => {
     if (!form || !context || submitting) return;
@@ -110,19 +118,22 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
     'Eliminar serie', `¿Eliminar la serie ${value.setIndex + 1}?`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: () => void (async () => {
-        await execution.deleteSet(item.id, value.id); await loadSets();
+        try { await execution.deleteSet(item.id, value.id); await loadSets(); }
+        catch (reason) { Alert.alert('No se pudo eliminar', reason instanceof Error ? reason.message : 'Error inesperado.'); }
       })() },
     ],
   );
   const saveNote = async (item: SessionExercise, note: string) => {
-    await execution.updateExerciseNote(item.id, note); await onRefresh();
+    try { await execution.updateExerciseNote(item.id, note); await onRefresh(); }
+    catch (reason) { Alert.alert('No se pudo guardar la nota', reason instanceof Error ? reason.message : 'Error inesperado.'); }
   };
   const move = async (index: number, offset: number) => {
     const target = index + offset;
     if (target < 0 || target >= items.length || items.length === 0) return;
     const ids = items.map((item) => item.id);
     [ids[index], ids[target]] = [ids[target], ids[index]];
-    await sessions.reorderExercises(items[index].sessionId, ids); await onRefresh();
+    try { await sessions.reorderExercises(items[index].sessionId, ids); await onRefresh(); }
+    catch (reason) { Alert.alert('No se pudo reordenar', reason instanceof Error ? reason.message : 'Error inesperado.'); }
   };
   const finish = async () => {
     if (finishing) return;
