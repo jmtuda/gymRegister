@@ -1,15 +1,18 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
-  ActivityIndicator, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, View,
+  ActivityIndicator, Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet, Text, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import { createHistoryRepository } from '../../data/historyRepository.ts';
 import type { CompletedSessionDetail, CompletedSessionSummary } from '../../domain/history.ts';
+import type { ExportFormat } from '../../domain/export.ts';
 import type { PerformedSet } from '../../domain/training.ts';
 import { labelForOption } from '../exercises/catalogPresentation.ts';
+import { createExportGate } from '../export/exportGate.ts';
+import { createExportService } from '../export/exportService.ts';
 
 const DATE_FORMAT = new Intl.DateTimeFormat('es-ES', {
   dateStyle: 'medium', timeStyle: 'short',
@@ -48,9 +51,13 @@ function formatSet(value: PerformedSet): string {
 export function HistoryScreen() {
   const database = useSQLiteContext();
   const history = useMemo(() => createHistoryRepository(database), [database]);
+  const exporter = useMemo(() => createExportService(database), [database]);
+  const exportGate = useRef(createExportGate()).current;
   const [sessions, setSessions] = useState<CompletedSessionSummary[]>([]);
   const [detail, setDetail] = useState<CompletedSessionDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exporting, setExporting] = useState<ExportFormat | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -61,6 +68,19 @@ export function HistoryScreen() {
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
 
   const openDetail = async (id: string) => setDetail(await history.getCompletedSessionDetail(id));
+  const exportData = async (format: ExportFormat) => {
+    setExportOpen(false);
+    await exportGate.run(async () => {
+      setExporting(format);
+      try {
+        await exporter.export(format);
+      } catch (reason) {
+        Alert.alert('No se pudo exportar', reason instanceof Error ? reason.message : 'Error inesperado.');
+      } finally {
+        setExporting(null);
+      }
+    });
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -68,6 +88,13 @@ export function HistoryScreen() {
         <Text style={styles.eyebrow}>HISTORIAL</Text>
         <Text style={styles.title}>Sesiones completadas</Text>
         <Text style={styles.subtitle}>Consulta exactamente lo que registraste.</Text>
+        <Pressable
+          disabled={exporting !== null} style={[styles.exportButton, exporting !== null && styles.disabledButton]}
+          onPress={() => setExportOpen(true)}
+        >
+          {exporting !== null && <ActivityIndicator color="#fff" />}
+          <Text style={styles.exportButtonText}>{exporting ? `Generando ${exporting.toUpperCase()}…` : 'Exportar historial'}</Text>
+        </Pressable>
       </View>
       {loading ? <ActivityIndicator style={styles.loader} color="#0e7490" /> : (
         <FlatList
@@ -125,6 +152,18 @@ export function HistoryScreen() {
           </ScrollView>}
         </SafeAreaView>
       </Modal>
+
+      <Modal visible={exportOpen} transparent animationType="fade" onRequestClose={() => setExportOpen(false)}>
+        <View style={styles.exportBackdrop}>
+          <View style={styles.exportCard}>
+            <Text style={styles.exportTitle}>Exportar historial</Text>
+            <Text style={styles.exportDescription}>Elige el formato del archivo que quieres compartir o guardar.</Text>
+            <Pressable style={styles.exportOption} onPress={() => void exportData('csv')}><Text style={styles.exportOptionText}>Exportar CSV</Text></Pressable>
+            <Pressable style={styles.exportOption} onPress={() => void exportData('json')}><Text style={styles.exportOptionText}>Exportar JSON</Text></Pressable>
+            <Pressable style={styles.cancelOption} onPress={() => setExportOpen(false)}><Text style={styles.link}>Cancelar</Text></Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -135,6 +174,8 @@ const styles = StyleSheet.create({
   eyebrow: { color: '#0e7490', fontSize: 12, fontWeight: '800', letterSpacing: 1.4 },
   title: { color: '#0f172a', fontSize: 30, fontWeight: '800', marginTop: 4 },
   subtitle: { color: '#64748b', fontSize: 16, marginTop: 6 },
+  exportButton: { alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#0e7490', borderRadius: 10, flexDirection: 'row', gap: 8, marginTop: 14, paddingHorizontal: 14, paddingVertical: 11 },
+  exportButtonText: { color: '#fff', fontWeight: '800' }, disabledButton: { opacity: 0.55 },
   loader: { flex: 1 }, list: { gap: 12, padding: 16, paddingBottom: 48 },
   emptyList: { flexGrow: 1, justifyContent: 'center' },
   empty: { color: '#64748b', textAlign: 'center' },
@@ -151,4 +192,9 @@ const styles = StyleSheet.create({
   selection: { color: '#0e7490', fontSize: 12, marginTop: 5 }, exerciseNote: { color: '#475569', fontStyle: 'italic', marginTop: 9 },
   noSets: { color: '#64748b', marginTop: 12 }, setRow: { borderTopColor: '#f1f5f9', borderTopWidth: 1, marginTop: 10, paddingTop: 10 },
   setIndex: { color: '#334155', fontWeight: '700' }, setValue: { color: '#64748b', marginTop: 3 },
+  exportBackdrop: { backgroundColor: 'rgba(15, 23, 42, 0.5)', flex: 1, justifyContent: 'center', padding: 22 },
+  exportCard: { backgroundColor: '#fff', borderRadius: 18, padding: 20 }, exportTitle: { color: '#0f172a', fontSize: 22, fontWeight: '800' },
+  exportDescription: { color: '#64748b', lineHeight: 21, marginBottom: 16, marginTop: 7 },
+  exportOption: { alignItems: 'center', backgroundColor: '#0e7490', borderRadius: 10, marginTop: 9, padding: 13 },
+  exportOptionText: { color: '#fff', fontWeight: '800' }, cancelOption: { alignItems: 'center', marginTop: 16, padding: 8 },
 });
