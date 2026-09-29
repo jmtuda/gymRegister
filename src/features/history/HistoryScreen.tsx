@@ -62,12 +62,18 @@ export function HistoryScreen() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try { setSessions(await history.listCompletedSessions()); }
+    catch (reason) {
+      Alert.alert('No se pudo cargar el historial', reason instanceof Error ? reason.message : 'Error inesperado.');
+    }
     finally { setLoading(false); }
   }, [history]);
 
   useFocusEffect(useCallback(() => { void refresh(); }, [refresh]));
 
-  const openDetail = async (id: string) => setDetail(await history.getCompletedSessionDetail(id));
+  const openDetail = async (id: string) => {
+    try { setDetail(await history.getCompletedSessionDetail(id)); }
+    catch (reason) { Alert.alert('No se pudo abrir la sesión', reason instanceof Error ? reason.message : 'Error inesperado.'); }
+  };
   const exportData = async (format: ExportFormat) => {
     setExportOpen(false);
     await exportGate.run(async () => {

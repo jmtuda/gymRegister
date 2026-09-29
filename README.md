@@ -43,6 +43,10 @@ No se planifican series, pesos, repeticiones ni RIR. Estos datos se introducen a
 
 ## Alcance del MVP local
 
+**Estado: completado.** El MVP local cubre catálogo, sesiones manuales, ejecución,
+historial y exportación CSV/JSON. La aplicación funciona sobre SQLite sin depender
+de servicios externos.
+
 Incluye:
 
 - catálogo inicial de 29 ejercicios base y 108 configuraciones derivado de gymCoach v2.2;
@@ -73,6 +77,9 @@ No incluye:
 El MVP se desarrollará primero sobre SQLite para que la ejecución de una sesión no dependa de Internet.
 
 Supabase se incorporará posteriormente como capa de autenticación, backup/sincronización y restauración. El modelo local se diseña desde el principio con IDs globales y timestamps para evitar rehacer el dominio cuando se añada la nube.
+
+Esta fase posterior no se ha iniciado; no existe autenticación, sincronización ni
+backup cloud en la versión actual.
 
 ## Documentación
 

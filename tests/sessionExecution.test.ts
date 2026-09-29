@@ -89,6 +89,19 @@ test('doble confirmación del mismo intento no duplica y set_index es consecutiv
   sqlite.close();
 });
 
+test('admite múltiples series sin límite lógico artificial', async () => {
+  const { sqlite, sessions, execution } = await setup();
+  const { exercise } = await inProgressFixture(sessions);
+  for (let index = 0; index < 40; index += 1) {
+    await execution.confirmSet({
+      attemptId: createUuid(), sessionExerciseId: exercise.id,
+      doseValue: index + 1, loadValue: 40,
+    });
+  }
+  assert.equal((await execution.listSets(exercise.id)).length, 40);
+  sqlite.close();
+});
+
 test('conserva correctamente reps, seconds y meters', async () => {
   const cases = [
     ['BACK_SQUAT', 'BACK_SQUAT.BARBELL', 'reps'],

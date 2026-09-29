@@ -159,9 +159,22 @@ export function createManualSessionRepository(database: Database) {
     async addExercise(input: AddSessionExerciseInput): Promise<SessionExercise> {
       const id = input.id ?? createUuid();
       const now = input.now ?? new Date().toISOString();
+      let result: SessionExercise | null = null;
 
       await database.withExclusiveTransactionAsync(async (transaction) => {
         await requireOpenSession(transaction, input.sessionId);
+        const existing = await transaction.getFirstAsync<SessionExerciseRow>(
+          'SELECT * FROM session_exercises WHERE id = ?', id,
+        );
+        if (existing) {
+          if (existing.session_id !== input.sessionId
+            || existing.exercise_id !== input.exerciseId
+            || existing.configuration_id !== input.configurationId) {
+            throw new Error('El intento de añadir pertenece a otra selección.');
+          }
+          result = mapSessionExercise(existing);
+          return;
+        }
         const catalog = await transaction.getFirstAsync<CatalogSelectionRow>(
           `SELECT exercises.id AS exercise_id, exercises.name_es AS exercise_name,
             exercises.active AS exercise_active, configurations.id AS configuration_id,
@@ -204,8 +217,12 @@ export function createManualSessionRepository(database: Database) {
           catalog.exercise_name, catalog.configuration_name, Number(order?.next_index ?? 0),
           selectedEquipment, selectedLaterality, selectedGrip, selectedGripWidth, now, now,
         );
+        result = mapSessionExercise((await transaction.getFirstAsync<SessionExerciseRow>(
+          'SELECT * FROM session_exercises WHERE id = ?', id,
+        ))!);
       });
-      return (await this.listSessionExercises(input.sessionId)).find((item) => item.id === id)!;
+      if (!result) throw new Error('No se pudo añadir el ejercicio a la sesión.');
+      return result;
     },
 
     async removeExercise(sessionId: string, exerciseId: string): Promise<void> {

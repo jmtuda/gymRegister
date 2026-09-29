@@ -58,6 +58,34 @@ async function getSet(database: DatabaseConnection, id: string): Promise<Perform
   return row ? mapSet(row) : null;
 }
 
+const NUMERIC_LOAD_MODES: LoadMode[] = [
+  'TOTAL_KG', 'IMPLEMENT_KG', 'DISPLAYED_KG', 'ASSISTANCE_KG',
+];
+
+function validateSet(input: CreatePerformedSetInput): void {
+  if (!Number.isFinite(input.doseValue) || input.doseValue <= 0) {
+    throw new Error('La dosis debe ser mayor que cero.');
+  }
+  if (input.rir !== null && input.rir !== undefined
+    && (!Number.isInteger(input.rir) || input.rir < 0 || input.rir > 5)) {
+    throw new Error('El RIR debe ser un entero entre 0 y 5.');
+  }
+  const hasValue = input.loadValue !== null && input.loadValue !== undefined;
+  const hasLabel = Boolean(input.loadLabel?.trim());
+  if (hasValue && hasLabel) throw new Error('No se puede guardar carga numérica y etiqueta simultáneamente.');
+  if (NUMERIC_LOAD_MODES.includes(input.loadMode)) {
+    if (!hasValue || !Number.isFinite(input.loadValue) || Number(input.loadValue) < 0) {
+      throw new Error('Introduce una carga numérica mayor o igual que cero.');
+    }
+    if (hasLabel) throw new Error('Este modo de carga solo acepta un valor numérico.');
+  } else if (input.loadMode === 'BAND_LABEL') {
+    if (hasValue) throw new Error('Las bandas se registran mediante una etiqueta, no en kg.');
+    if (!hasLabel) throw new Error('Introduce la banda o resistencia utilizada.');
+  } else if (hasValue || hasLabel) {
+    throw new Error('Este modo no admite datos de carga.');
+  }
+}
+
 export function createPerformedSetRepository(database: Database) {
   return {
     async createSessionExercise(input: CreateSessionExerciseInput): Promise<SessionExercise> {
@@ -96,6 +124,7 @@ export function createPerformedSetRepository(database: Database) {
     async createSet(input: CreatePerformedSetInput): Promise<PerformedSet> {
       const id = input.id ?? createUuid();
       const now = input.now ?? new Date().toISOString();
+      validateSet(input);
       let result: PerformedSet | null = null;
       await database.withExclusiveTransactionAsync(async (transaction) => {
         const session = await transaction.getFirstAsync<{ status: string }>(

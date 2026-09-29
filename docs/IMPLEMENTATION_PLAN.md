@@ -26,7 +26,7 @@ Mantener la base tecnológica conocida de gymCoach salvo motivo técnico claro p
 
 gymCoach es referencia de implementación, no dependencia del nuevo proyecto.
 
-## TASK-001 — Proyecto base y persistencia
+## TASK-001 — Proyecto base y persistencia ✅
 
 Objetivo:
 
@@ -44,7 +44,7 @@ Criterios:
 - migración inicial reproducible;
 - ninguna dependencia de gymCoach en runtime.
 
-## TASK-002 — Catálogo
+## TASK-002 — Catálogo ✅
 
 Objetivo:
 
@@ -64,7 +64,7 @@ Criterios:
 - IDs estables;
 - desactivar no borra historial.
 
-## TASK-003 — Crear sesión manual
+## TASK-003 — Crear sesión manual ✅
 
 Objetivo:
 
@@ -83,7 +83,7 @@ Criterios:
 - no se pide número de series;
 - no se pide carga o RIR antes de entrenar.
 
-## TASK-004 — Ejecución y series
+## TASK-004 — Ejecución y series ✅
 
 Objetivo:
 
@@ -113,7 +113,7 @@ No reutilizar:
 - contexto;
 - motor adaptativo.
 
-## TASK-005 — Finalización e historial
+## TASK-005 — Finalización e historial ✅
 
 Objetivo:
 
@@ -130,7 +130,7 @@ Criterios:
 - historial independiente de cambios posteriores del catálogo;
 - no existe feedback metodológico obligatorio.
 
-## TASK-006 — Exportación
+## TASK-006 — Exportación ✅
 
 Objetivo:
 
@@ -144,7 +144,7 @@ Criterios:
 - JSON: estructura completa;
 - exportación no altera datos.
 
-## TASK-007 — Pulido y pruebas del MVP
+## TASK-007 — Pulido y pruebas del MVP ✅
 
 Objetivo:
 
@@ -167,7 +167,18 @@ Contratos que deben estar cubiertos por tests:
 - una sesión completada conserva sus datos;
 - solo existe una sesión activa.
 
-## Fase posterior — Supabase
+## Estado final del MVP local
+
+TASK-001 a TASK-007 están completadas. El producto permite gestionar el catálogo
+SYSTEM/CUSTOM, crear y ejecutar sesiones manuales, conservar un historial cerrado
+y exportarlo en CSV o JSON mediante las capacidades nativas del dispositivo.
+
+SQLite es la única fuente operativa. Los snapshots de nombres y la semántica
+persistida de cada serie mantienen estable el historial aunque cambie el catálogo.
+Las pruebas cubren recuperación tras recrear repositorios, idempotencia, rollback,
+inmutabilidad de sesiones completadas y exportación de solo lectura.
+
+## Fase posterior — Supabase (no iniciada)
 
 No iniciar hasta aprobar el MVP local.
 

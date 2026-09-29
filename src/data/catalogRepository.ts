@@ -64,6 +64,30 @@ async function requireCustomConfiguration(database: Database, id: string) {
   if (row.origin !== 'CUSTOM') throw new Error('Las configuraciones SYSTEM no se pueden modificar.');
 }
 
+function requireName(value: string | undefined, current?: string): string {
+  const name = value === undefined ? current?.trim() : value.trim();
+  if (!name) throw new Error('El nombre es obligatorio.');
+  return name;
+}
+
+function requireEquipment(options: string[] | undefined, current?: string[]): string[] {
+  const value = options ?? current ?? [];
+  if (value.length === 0) throw new Error('Selecciona al menos un equipamiento.');
+  return value;
+}
+
+async function requireGroup(database: Database, id: string): Promise<void> {
+  const group = await database.getFirstAsync<{ id: string }>(
+    'SELECT id FROM exercise_groups WHERE id = ? AND active = 1', id,
+  );
+  if (!group) throw new Error('Grupo no encontrado.');
+}
+
+async function requireExercise(database: Database, id: string): Promise<void> {
+  const exercise = await database.getFirstAsync<{ id: string }>('SELECT id FROM exercises WHERE id = ?', id);
+  if (!exercise) throw new Error('Ejercicio no encontrado.');
+}
+
 export function createCatalogRepository(database: Database) {
   return {
     async listGroups(): Promise<ExerciseGroup[]> {
@@ -113,12 +137,14 @@ export function createCatalogRepository(database: Database) {
     async createCustomExercise(input: CreateCustomExerciseInput): Promise<Exercise> {
       const id = input.id ?? createUuid();
       const now = input.now ?? new Date().toISOString();
+      await requireGroup(database, input.groupId);
+      const name = requireName(input.nameEs);
       await database.runAsync(
         `INSERT INTO exercises
           (id, group_id, name_es, technical_pattern, primary_muscles, secondary_muscles,
            origin, active, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, 'CUSTOM', 1, ?, ?)`,
-        id, input.groupId, input.nameEs.trim(), input.technicalPattern?.trim() || null,
+        id, input.groupId, name, input.technicalPattern?.trim() || null,
         JSON.stringify(input.primaryMuscles ?? []), JSON.stringify(input.secondaryMuscles ?? []), now, now,
       );
       const created = await this.getExerciseById(id);
@@ -131,10 +157,13 @@ export function createCatalogRepository(database: Database) {
       const current = await this.getExerciseById(id);
       if (!current) throw new Error('Ejercicio no encontrado.');
       const now = input.now ?? new Date().toISOString();
+      const groupId = input.groupId ?? current.groupId;
+      await requireGroup(database, groupId);
+      const name = requireName(input.nameEs, current.nameEs);
       await database.runAsync(
         `UPDATE exercises SET group_id = ?, name_es = ?, technical_pattern = ?, primary_muscles = ?,
           secondary_muscles = ?, updated_at = ? WHERE id = ? AND origin = 'CUSTOM'`,
-        input.groupId ?? current.groupId, input.nameEs?.trim() ?? current.nameEs,
+        groupId, name,
         input.technicalPattern === undefined ? current.technicalPattern : input.technicalPattern?.trim() || null,
         JSON.stringify(input.primaryMuscles ?? current.primaryMuscles),
         JSON.stringify(input.secondaryMuscles ?? current.secondaryMuscles), now, id,
@@ -154,13 +183,16 @@ export function createCatalogRepository(database: Database) {
     async createCustomConfiguration(input: CreateCustomConfigurationInput): Promise<ExerciseConfiguration> {
       const id = input.id ?? createUuid();
       const now = input.now ?? new Date().toISOString();
+      await requireExercise(database, input.exerciseId);
+      const name = requireName(input.nameEs);
+      const equipment = requireEquipment(input.equipmentOptions);
       await database.runAsync(
         `INSERT INTO exercise_configurations
           (id, exercise_id, name_es, equipment_options, laterality_options, grip_options,
            grip_width_options, attachment, auxiliary_equipment, band_type, anchor_required,
            anchor_height_options, dose_unit, load_mode, origin, active, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CUSTOM', 1, ?, ?)`,
-        id, input.exerciseId, input.nameEs.trim(), JSON.stringify(input.equipmentOptions),
+        id, input.exerciseId, name, JSON.stringify(equipment),
         JSON.stringify(input.lateralityOptions ?? []), JSON.stringify(input.gripOptions ?? []),
         JSON.stringify(input.gripWidthOptions ?? []), input.attachment?.trim() || null,
         JSON.stringify(input.auxiliaryEquipment ?? []), JSON.stringify(input.bandType ?? []),
@@ -177,12 +209,14 @@ export function createCatalogRepository(database: Database) {
       const current = await this.getConfigurationById(id);
       if (!current) throw new Error('Configuración no encontrada.');
       const now = input.now ?? new Date().toISOString();
+      const name = requireName(input.nameEs, current.nameEs);
+      const equipment = requireEquipment(input.equipmentOptions, current.equipmentOptions);
       await database.runAsync(
         `UPDATE exercise_configurations SET name_es = ?, equipment_options = ?, laterality_options = ?,
           grip_options = ?, grip_width_options = ?, attachment = ?, auxiliary_equipment = ?,
           band_type = ?, anchor_required = ?, anchor_height_options = ?, dose_unit = ?, load_mode = ?,
           updated_at = ? WHERE id = ? AND origin = 'CUSTOM'`,
-        input.nameEs?.trim() ?? current.nameEs, JSON.stringify(input.equipmentOptions ?? current.equipmentOptions),
+        name, JSON.stringify(equipment),
         JSON.stringify(input.lateralityOptions ?? current.lateralityOptions),
         JSON.stringify(input.gripOptions ?? current.gripOptions),
         JSON.stringify(input.gripWidthOptions ?? current.gripWidthOptions),

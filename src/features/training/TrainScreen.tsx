@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator, Alert, FlatList, Modal, Pressable, ScrollView, StyleSheet,
   Text, TextInput, View,
@@ -9,6 +9,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { createCatalogRepository } from '../../data/catalogRepository.ts';
 import { createManualSessionRepository } from '../../data/manualSessionRepository.ts';
 import type { Exercise, ExerciseConfiguration, ExerciseGroup } from '../../domain/catalog.ts';
+import { createUuid } from '../../domain/id.ts';
 import type { SessionExercise, TrainingSession } from '../../domain/training.ts';
 import { labelForOption } from '../exercises/catalogPresentation.ts';
 import { SessionExecutionScreen } from './SessionExecutionScreen.tsx';
@@ -48,6 +49,8 @@ export function TrainScreen() {
   const [note, setNote] = useState('');
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const addingRef = useRef(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [groups, setGroups] = useState<ExerciseGroup[]>([]);
   const [group, setGroup] = useState<ExerciseGroup | null>(null);
@@ -55,6 +58,7 @@ export function TrainScreen() {
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [configurations, setConfigurations] = useState<ExerciseConfiguration[]>([]);
   const [configuration, setConfiguration] = useState<ExerciseConfiguration | null>(null);
+  const [additionId, setAdditionId] = useState<string | null>(null);
   const [selection, setSelection] = useState<Selection>({ equipment: null, laterality: null, grip: null, gripWidth: null });
 
   const refresh = useCallback(async () => {
@@ -74,23 +78,29 @@ export function TrainScreen() {
     if (creating) return;
     setCreating(true);
     try { await sessions.createDraft(); await refresh(); }
+    catch (reason) { Alert.alert('No se pudo crear la sesión', reason instanceof Error ? reason.message : 'Error inesperado.'); }
     finally { setCreating(false); }
   };
 
   const openPicker = async () => {
     setPickerOpen(true); setGroup(null); setExercise(null); setConfiguration(null);
-    setGroups(await catalog.listGroups());
+    setAdditionId(null);
+    try { setGroups(await catalog.listGroups()); }
+    catch (reason) { Alert.alert('No se pudo abrir el catálogo', reason instanceof Error ? reason.message : 'Error inesperado.'); setPickerOpen(false); }
   };
   const chooseGroup = async (value: ExerciseGroup) => {
     setGroup(value); setExercise(null); setConfiguration(null);
-    setExercises(await catalog.listExercisesByGroup(value.id));
+    try { setExercises(await catalog.listExercisesByGroup(value.id)); }
+    catch (reason) { Alert.alert('No se pudieron cargar los ejercicios', reason instanceof Error ? reason.message : 'Error inesperado.'); }
   };
   const chooseExercise = async (value: Exercise) => {
     setExercise(value); setConfiguration(null);
-    setConfigurations(await catalog.listConfigurationsByExercise(value.id));
+    try { setConfigurations(await catalog.listConfigurationsByExercise(value.id)); }
+    catch (reason) { Alert.alert('No se pudieron cargar las configuraciones', reason instanceof Error ? reason.message : 'Error inesperado.'); }
   };
   const chooseConfiguration = (value: ExerciseConfiguration) => {
     setConfiguration(value);
+    setAdditionId(createUuid());
     setSelection({
       equipment: initialChoice(value.equipmentOptions), laterality: initialChoice(value.lateralityOptions),
       grip: initialChoice(value.gripOptions), gripWidth: initialChoice(value.gripWidthOptions),
@@ -103,27 +113,35 @@ export function TrainScreen() {
     && (configuration.gripWidthOptions.length <= 1 || selection.gripWidth !== null);
 
   const addExercise = async () => {
-    if (!session || !exercise || !configuration || !selectionComplete) return;
+    if (!session || !exercise || !configuration || !additionId || !selectionComplete || addingRef.current) return;
+    addingRef.current = true; setAdding(true);
     try {
       await sessions.addExercise({
+        id: additionId,
         sessionId: session.id, exerciseId: exercise.id, configurationId: configuration.id,
         selectedEquipment: selection.equipment, selectedLaterality: selection.laterality,
         selectedGrip: selection.grip, selectedGripWidth: selection.gripWidth,
       });
       setPickerOpen(false); await refresh();
     } catch (reason) { Alert.alert('No se pudo añadir', reason instanceof Error ? reason.message : 'Error inesperado.'); }
+    finally { addingRef.current = false; setAdding(false); }
   };
 
   const persistNote = async () => {
-    if (session?.status !== 'draft' || note === (session.note ?? '')) return;
-    const updated = await sessions.updateNote(session.id, note);
-    setSession(updated);
+    if (session?.status !== 'draft' || note === (session.note ?? '')) return true;
+    try { setSession(await sessions.updateNote(session.id, note)); return true; }
+    catch (reason) {
+      Alert.alert('No se pudo guardar la nota', reason instanceof Error ? reason.message : 'Error inesperado.');
+      return false;
+    }
   };
   const remove = (item: SessionExercise) => Alert.alert(
     'Eliminar ejercicio', `¿Retirar “${item.exerciseNameSnapshot}” de la sesión?`, [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Eliminar', style: 'destructive', onPress: () => void (async () => {
-        if (!session) return; await sessions.removeExercise(session.id, item.id); await refresh();
+        if (!session) return;
+        try { await sessions.removeExercise(session.id, item.id); await refresh(); }
+        catch (reason) { Alert.alert('No se pudo eliminar', reason instanceof Error ? reason.message : 'Error inesperado.'); }
       })() },
     ],
   );
@@ -133,11 +151,12 @@ export function TrainScreen() {
     if (target < 0 || target >= items.length) return;
     const ids = items.map((item) => item.id);
     [ids[index], ids[target]] = [ids[target], ids[index]];
-    setItems(await sessions.reorderExercises(session.id, ids));
+    try { setItems(await sessions.reorderExercises(session.id, ids)); }
+    catch (reason) { Alert.alert('No se pudo reordenar', reason instanceof Error ? reason.message : 'Error inesperado.'); }
   };
   const start = async () => {
     if (!session) return;
-    try { await persistNote(); setSession(await sessions.startSession(session.id)); }
+    try { if (await persistNote()) setSession(await sessions.startSession(session.id)); }
     catch (reason) { Alert.alert('No se puede iniciar', reason instanceof Error ? reason.message : 'Error inesperado.'); }
   };
 
@@ -234,7 +253,7 @@ export function TrainScreen() {
               <OptionPicker label="Lateralidad" options={configuration.lateralityOptions} value={selection.laterality} onChange={(laterality) => setSelection((old) => ({ ...old, laterality }))} />
               <OptionPicker label="Agarre" options={configuration.gripOptions} value={selection.grip} onChange={(grip) => setSelection((old) => ({ ...old, grip }))} />
               <OptionPicker label="Anchura de agarre" options={configuration.gripWidthOptions} value={selection.gripWidth} onChange={(gripWidth) => setSelection((old) => ({ ...old, gripWidth }))} />
-              <Pressable disabled={!selectionComplete} style={[styles.primaryButton, !selectionComplete && styles.buttonDisabled]} onPress={() => void addExercise()}><Text style={styles.primaryButtonText}>Añadir a la sesión</Text></Pressable>
+              <Pressable disabled={!selectionComplete || adding} style={[styles.primaryButton, (!selectionComplete || adding) && styles.buttonDisabled]} onPress={() => void addExercise()}><Text style={styles.primaryButtonText}>{adding ? 'Añadiendo…' : 'Añadir a la sesión'}</Text></Pressable>
             </>}
           </ScrollView>
         </SafeAreaView>
