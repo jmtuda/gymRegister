@@ -50,7 +50,7 @@ async function createExerciseFixture(database: Database, sqlite: DatabaseSync) {
   seedCatalog(sqlite);
   const sessions = createTrainingSessionRepository(database);
   const sets = createPerformedSetRepository(database);
-  await sessions.create({ id: 'session-1', now: '2026-01-01T10:00:00.000Z' });
+  await sessions.create({ id: 'session-1', status: 'in_progress', now: '2026-01-01T10:00:00.000Z' });
   const exercise = await sets.createSessionExercise({
     id: 'session-exercise-1', sessionId: 'session-1', exerciseId: 'TEST_EXERCISE',
     configurationId: 'TEST_CONFIG', exerciseNameSnapshot: 'Ejercicio test',

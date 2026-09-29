@@ -1,6 +1,6 @@
 import type { DoseUnit, LoadMode, PerformedSet, SessionExercise } from '../domain/training.ts';
 import { createUuid } from '../domain/id.ts';
-import type { Database } from './types.ts';
+import type { Database, DatabaseConnection } from './types.ts';
 
 type SessionExerciseRow = {
   id: string; session_id: string; exercise_id: string; configuration_id: string;
@@ -43,54 +43,89 @@ const mapSet = (row: SetRow): PerformedSet => ({
   rir: row.rir, confirmedAt: row.confirmed_at, createdAt: row.created_at, updatedAt: row.updated_at,
 });
 
+async function getSessionExercise(
+  database: DatabaseConnection,
+  id: string,
+): Promise<SessionExercise | null> {
+  const row = await database.getFirstAsync<SessionExerciseRow>(
+    'SELECT * FROM session_exercises WHERE id = ?', id,
+  );
+  return row ? mapSessionExercise(row) : null;
+}
+
+async function getSet(database: DatabaseConnection, id: string): Promise<PerformedSet | null> {
+  const row = await database.getFirstAsync<SetRow>('SELECT * FROM performed_sets WHERE id = ?', id);
+  return row ? mapSet(row) : null;
+}
+
 export function createPerformedSetRepository(database: Database) {
   return {
     async createSessionExercise(input: CreateSessionExerciseInput): Promise<SessionExercise> {
       const id = input.id ?? createUuid();
       const now = input.now ?? new Date().toISOString();
-      await database.runAsync(
-        `INSERT INTO session_exercises
-          (id, session_id, exercise_id, configuration_id, exercise_name_snapshot,
-           configuration_name_snapshot, order_index, selected_equipment,
-           selected_laterality, selected_grip, selected_grip_width, note, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        id, input.sessionId, input.exerciseId, input.configurationId,
-        input.exerciseNameSnapshot ?? null, input.configurationNameSnapshot ?? null, input.orderIndex,
-        input.selectedEquipment ?? null, input.selectedLaterality ?? null,
-        input.selectedGrip ?? null, input.selectedGripWidth ?? null, input.note ?? null, now, now,
-      );
-      const value = await this.getSessionExerciseById(id);
-      if (!value) throw new Error('No se pudo recuperar el ejercicio de sesión creado.');
-      return value;
+      let result: SessionExercise | null = null;
+      await database.withExclusiveTransactionAsync(async (transaction) => {
+        const session = await transaction.getFirstAsync<{ status: string }>(
+          'SELECT status FROM training_sessions WHERE id = ?', input.sessionId,
+        );
+        if (!session) throw new Error('Sesión no encontrada.');
+        if (session.status !== 'draft' && session.status !== 'in_progress') {
+          throw new Error('Solo se pueden añadir ejercicios a una sesión abierta.');
+        }
+        await transaction.runAsync(
+          `INSERT INTO session_exercises
+            (id, session_id, exercise_id, configuration_id, exercise_name_snapshot,
+             configuration_name_snapshot, order_index, selected_equipment,
+             selected_laterality, selected_grip, selected_grip_width, note, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          id, input.sessionId, input.exerciseId, input.configurationId,
+          input.exerciseNameSnapshot ?? null, input.configurationNameSnapshot ?? null, input.orderIndex,
+          input.selectedEquipment ?? null, input.selectedLaterality ?? null,
+          input.selectedGrip ?? null, input.selectedGripWidth ?? null, input.note ?? null, now, now,
+        );
+        result = await getSessionExercise(transaction, id);
+      });
+      if (!result) throw new Error('No se pudo recuperar el ejercicio de sesión creado.');
+      return result;
     },
 
     async getSessionExerciseById(id: string): Promise<SessionExercise | null> {
-      const row = await database.getFirstAsync<SessionExerciseRow>(
-        'SELECT * FROM session_exercises WHERE id = ?', id,
-      );
-      return row ? mapSessionExercise(row) : null;
+      return getSessionExercise(database, id);
     },
 
     async createSet(input: CreatePerformedSetInput): Promise<PerformedSet> {
       const id = input.id ?? createUuid();
       const now = input.now ?? new Date().toISOString();
-      await database.runAsync(
-        `INSERT INTO performed_sets
-          (id, session_exercise_id, set_index, dose_unit, dose_value, per_side, load_mode,
-           load_value, load_label, rir, confirmed_at, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        id, input.sessionExerciseId, input.setIndex, input.doseUnit, input.doseValue,
-        input.perSide ? 1 : 0, input.loadMode, input.loadValue ?? null, input.loadLabel ?? null,
-        input.rir ?? null, input.confirmedAt ?? now, now, now,
-      );
-      const value = await this.getSetById(id);
-      if (!value) throw new Error('No se pudo recuperar la serie creada.');
-      return value;
+      let result: PerformedSet | null = null;
+      await database.withExclusiveTransactionAsync(async (transaction) => {
+        const session = await transaction.getFirstAsync<{ status: string }>(
+          `SELECT training_sessions.status
+           FROM session_exercises
+           JOIN training_sessions ON training_sessions.id = session_exercises.session_id
+           WHERE session_exercises.id = ?`,
+          input.sessionExerciseId,
+        );
+        if (!session) throw new Error('Ejercicio de sesión no encontrado.');
+        if (session.status !== 'in_progress') {
+          throw new Error('Solo se pueden registrar series en una sesión en curso.');
+        }
+        await transaction.runAsync(
+          `INSERT INTO performed_sets
+            (id, session_exercise_id, set_index, dose_unit, dose_value, per_side, load_mode,
+             load_value, load_label, rir, confirmed_at, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          id, input.sessionExerciseId, input.setIndex, input.doseUnit, input.doseValue,
+          input.perSide ? 1 : 0, input.loadMode, input.loadValue ?? null, input.loadLabel ?? null,
+          input.rir ?? null, input.confirmedAt ?? now, now, now,
+        );
+        result = await getSet(transaction, id);
+      });
+      if (!result) throw new Error('No se pudo recuperar la serie creada.');
+      return result;
     },
 
     async getSetById(id: string): Promise<PerformedSet | null> {
-      const row = await database.getFirstAsync<SetRow>('SELECT * FROM performed_sets WHERE id = ?', id);
-      return row ? mapSet(row) : null;
+      return getSet(database, id);
     },
   };
 }
