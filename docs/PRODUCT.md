@@ -168,7 +168,8 @@ Solo los datos realmente confirmados cuentan como realizados.
 
 Desde esta pestaña se puede exportar todo el historial completado en CSV o JSON y
 abrir la hoja nativa para compartir o guardar el archivo. La exportación funciona
-también sin sesiones: CSV conserva su cabecera y JSON devuelve una lista vacía.
+offline. Si todavía no existen sesiones completadas, se informa al usuario y no se
+genera ningún archivo.
 
 ## 3. Ejercicios
 

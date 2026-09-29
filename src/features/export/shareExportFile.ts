@@ -2,16 +2,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 
 import type { ExportFormat } from '../../domain/export.ts';
-
-const MIME_TYPES: Record<ExportFormat, string> = {
-  csv: 'text/csv',
-  json: 'application/json',
-};
-
-function filename(format: ExportFormat, now: Date): string {
-  const stamp = now.toISOString().replace(/[:.]/g, '-');
-  return `gymregister-${stamp}.${format}`;
-}
+import { exportFileMetadata } from './exportFileMetadata.ts';
 
 export async function shareExportFile(
   format: ExportFormat,
@@ -22,12 +13,13 @@ export async function shareExportFile(
   if (!(await Sharing.isAvailableAsync())) {
     throw new Error('Compartir archivos no está disponible en este dispositivo.');
   }
-  const uri = `${FileSystem.cacheDirectory}${filename(format, now)}`;
+  const metadata = exportFileMetadata(format, now);
+  const uri = `${FileSystem.cacheDirectory}${metadata.filename}`;
   await FileSystem.writeAsStringAsync(uri, content, { encoding: FileSystem.EncodingType.UTF8 });
   await Sharing.shareAsync(uri, {
-    mimeType: MIME_TYPES[format],
-    dialogTitle: format === 'csv' ? 'Exportar CSV' : 'Exportar JSON',
-    UTI: format === 'csv' ? 'public.comma-separated-values-text' : 'public.json',
+    mimeType: metadata.mimeType,
+    dialogTitle: metadata.dialogTitle,
+    UTI: metadata.UTI,
   });
   return uri;
 }

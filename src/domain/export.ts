@@ -3,6 +3,7 @@ import type { CompletedSessionDetail } from './history.ts';
 export type ExportFormat = 'csv' | 'json';
 
 export type ExportSourceExercise = CompletedSessionDetail['exercises'][number] & {
+  groupId: string | null;
   groupName: string | null;
 };
 
@@ -32,7 +33,8 @@ export interface ExportExercise {
   session_id: string;
   exercise_id: string;
   configuration_id: string;
-  group: string | null;
+  group_id: string | null;
+  group_name: string | null;
   exercise_name_snapshot: string | null;
   configuration_name_snapshot: string | null;
   order_index: number;
@@ -54,11 +56,15 @@ export interface ExportSession {
   started_at: string | null;
   completed_at: string;
   updated_at: string;
+}
+
+export interface ExportSessionEntry {
+  session: ExportSession;
   exercises: ExportExercise[];
 }
 
 export interface ExportDocument {
-  schemaVersion: 1;
-  exportedAt: string;
-  sessions: ExportSession[];
+  exportVersion: 1;
+  generatedAt: string;
+  sessions: ExportSessionEntry[];
 }

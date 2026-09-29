@@ -15,6 +15,7 @@ import type { CatalogSeedData } from '../src/domain/catalog.ts';
 import type { ExportSourceSession } from '../src/domain/export.ts';
 import { createUuid } from '../src/domain/id.ts';
 import { createExportGate } from '../src/features/export/exportGate.ts';
+import { exportFileMetadata } from '../src/features/export/exportFileMetadata.ts';
 import { buildExportDocument } from '../src/features/export/exportModel.ts';
 import {
   CSV_COLUMNS, serializeExportCsv, serializeExportJson,
@@ -31,15 +32,15 @@ function sourceFixture(): ExportSourceSession[] {
     },
     exercises: [{
       id: 'exercise-b', sessionId: 'session-2', exerciseId: 'CUSTOM', configurationId: 'CUSTOM.CONFIG',
-      groupName: 'Pecho', exerciseNameSnapshot: 'Press, “especial”',
+      groupId: 'CHEST', groupName: 'Pecho', exerciseNameSnapshot: 'Press, “especial”',
       configurationNameSnapshot: 'Máquina "única"', orderIndex: 3,
       selectedEquipment: 'MACHINE', selectedLaterality: null, selectedGrip: 'NEUTRAL',
       selectedGripWidth: null, note: 'Línea 1\n"Línea 2"',
       createdAt: '2026-06-02T10:01:00.000Z', updatedAt: '2026-06-02T10:02:00.000Z',
       sets: [{
         id: 'set-b', sessionExerciseId: 'exercise-b', setIndex: 5,
-        doseUnit: 'reps', doseValue: 8, perSide: false, loadMode: 'DISPLAYED_KG',
-        loadValue: 0, loadLabel: null, rir: 0, confirmedAt: '2026-06-02T10:10:00.000Z',
+        doseUnit: 'reps', doseValue: 8.5, perSide: false, loadMode: 'DISPLAYED_KG',
+        loadValue: 0.5, loadLabel: null, rir: 0, confirmedAt: '2026-06-02T10:10:00.000Z',
         createdAt: '2026-06-02T10:10:00.000Z', updatedAt: '2026-06-02T10:11:00.000Z',
       }, {
         id: 'set-a', sessionExerciseId: 'exercise-b', setIndex: 7,
@@ -50,7 +51,7 @@ function sourceFixture(): ExportSourceSession[] {
       }],
     }, {
       id: 'exercise-empty', sessionId: 'session-2', exerciseId: 'EMPTY', configurationId: 'EMPTY.CONFIG',
-      groupName: null, exerciseNameSnapshot: 'Sin series', configurationNameSnapshot: 'Peso corporal',
+      groupId: null, groupName: null, exerciseNameSnapshot: 'Sin series', configurationNameSnapshot: 'Peso corporal',
       orderIndex: 8, selectedEquipment: 'BODYWEIGHT', selectedLaterality: null,
       selectedGrip: null, selectedGripWidth: null, note: null,
       createdAt: '2026-06-02T10:30:00.000Z', updatedAt: '2026-06-02T10:30:00.000Z', sets: [],
@@ -105,9 +106,9 @@ test('CSV tiene cabecera estable, una fila por serie y conserva índices y ceros
   const lines = csv.split('\r\n');
   assert.equal(lines[0], CSV_COLUMNS.join(','));
   assert.equal(lines.length, 3);
-  assert.match(lines[1], /exercise-b,set-b,3/);
-  assert.match(lines[1], /,5,reps,8,false,DISPLAYED_KG,0,,0,/);
-  assert.match(lines[2], /,7,reps,6,true,BAND_LABEL,,"Azul, fuerte",,/);
+  assert.match(lines[1], /,3,exercise-b,CUSTOM,"Press, “especial”",CUSTOM\.CONFIG/);
+  assert.match(lines[1], /,set-b,5,reps,8\.5,false,DISPLAYED_KG,0\.5,,0,/);
+  assert.match(lines[2], /,set-a,7,reps,6,true,BAND_LABEL,,"Azul, fuerte",,/);
   assert.doesNotMatch(csv, /exercise-empty/);
 });
 
@@ -124,16 +125,16 @@ test('CSV vacío conserva la cabecera y escapa comas, comillas, saltos y Unicode
 test('JSON versionado conserva jerarquía, campos completos y ejercicios sin series', () => {
   const document = buildExportDocument(sourceFixture(), EXPORTED_AT);
   const parsed = JSON.parse(serializeExportJson(document));
-  assert.equal(parsed.schemaVersion, 1);
-  assert.equal(parsed.exportedAt, EXPORTED_AT);
-  assert.deepEqual(parsed.sessions.map((value: { id: string }) => value.id), ['session-2', 'session-1']);
+  assert.equal(parsed.exportVersion, 1);
+  assert.equal(parsed.generatedAt, EXPORTED_AT);
+  assert.deepEqual(parsed.sessions.map((value: { session: { id: string } }) => value.session.id), ['session-2', 'session-1']);
   assert.deepEqual(parsed.sessions[0].exercises.map((value: { id: string }) => value.id), ['exercise-b', 'exercise-empty']);
   assert.deepEqual(parsed.sessions[0].exercises[0].sets.map((value: { id: string }) => value.id), ['set-b', 'set-a']);
   assert.deepEqual(parsed.sessions[0].exercises[1].sets, []);
   assert.deepEqual(parsed.sessions[0].exercises[0], document.sessions[0].exercises[0]);
 });
 
-test('serializar repetidamente con el mismo exportedAt es determinista', () => {
+test('serializar repetidamente con el mismo generatedAt es determinista', () => {
   const first = buildExportDocument(sourceFixture(), EXPORTED_AT);
   const second = buildExportDocument(sourceFixture(), EXPORTED_AT);
   assert.equal(serializeExportJson(first), serializeExportJson(second));
@@ -164,6 +165,11 @@ test('la lectura exporta solo completed, preserva snapshots y no modifica SQLite
   await sessions.addExercise({
     id: 'draft-item', sessionId: draft.id, exerciseId: 'ROW', configurationId: 'ROW.BARBELL',
   });
+  assert.deepEqual(
+    (await exports.readCompletedSessions()).map((value) => value.session.id),
+    [completed.id],
+  );
+  await sessions.startSession(draft.id, '2026-06-02T10:00:00.000Z');
   await catalog.updateCustomExercise(customExercise.id, { nameEs: 'Nombre actual' });
   await catalog.updateCustomConfiguration(customConfiguration.id, { nameEs: 'Configuración actual' });
   await catalog.setCustomConfigurationActive(customConfiguration.id, false);
@@ -187,9 +193,27 @@ test('la lectura exporta solo completed, preserva snapshots y no modifica SQLite
   assert.deepEqual(source.map((value) => value.session.id), [completed.id]);
   assert.equal(source[0].exercises[0].exerciseNameSnapshot, 'Press exportado');
   assert.equal(source[0].exercises[0].configurationNameSnapshot, 'Máquina exportada');
+  assert.equal(source[0].exercises[0].groupId, 'CHEST');
+  assert.equal(source[0].exercises[0].groupName, 'Pecho');
   assert.equal(source[0].exercises[0].sets[0].loadMode, 'DISPLAYED_KG');
   assert.deepEqual(after, before);
   sqlite.close();
+});
+
+test('archivo exportado usa nombre, extensión y MIME estables', () => {
+  const now = new Date('2026-06-10T12:34:56.000Z');
+  assert.deepEqual(exportFileMetadata('csv', now), {
+    filename: 'gymregister-history-20260610-123456.csv',
+    mimeType: 'text/csv',
+    dialogTitle: 'Exportar CSV',
+    UTI: 'public.comma-separated-values-text',
+  });
+  assert.deepEqual(exportFileMetadata('json', now), {
+    filename: 'gymregister-history-20260610-123456.json',
+    mimeType: 'application/json',
+    dialogTitle: 'Exportar JSON',
+    UTI: 'public.json',
+  });
 });
 
 test('la puerta de exportación ignora dobles pulsaciones y se libera tras errores', async () => {
