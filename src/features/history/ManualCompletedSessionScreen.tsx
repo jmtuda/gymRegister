@@ -8,6 +8,7 @@ import { createManualSessionRepository, type ManualCompletedSetInput } from '../
 import type { Exercise, ExerciseConfiguration, ExerciseGroup } from '../../domain/catalog.ts';
 import { createUuid } from '../../domain/id.ts';
 import { labelForOption } from '../exercises/catalogPresentation.ts';
+import { numericLoadLabel } from '../shared/loadModePresentation.ts';
 
 type Selection = { equipment: string | null; laterality: string | null; grip: string | null; gripWidth: string | null };
 type DraftSet = ManualCompletedSetInput & { id: string };
@@ -17,7 +18,6 @@ type DraftExercise = {
 };
 type SetForm = { exerciseId: string; setId: string | null; dose: string; load: string; loadLabel: string; rir: string; perSide: boolean };
 
-const NUMERIC_LOADS = ['TOTAL_KG', 'IMPLEMENT_KG', 'DISPLAYED_KG', 'ASSISTANCE_KG'];
 const initialChoice = (values: string[]) => values.length === 1 ? values[0] : null;
 
 function parseLocalDateTime(value: string): string | null {
@@ -152,7 +152,7 @@ export function ManualCompletedSessionScreen({ onClose, onSaved }: { onClose: ()
 
     <Modal visible={setForm !== null} animationType="slide" onRequestClose={() => setSetForm(null)}><SafeAreaView style={styles.safeArea}><View style={styles.header}><Text style={styles.title}>{setForm?.setId ? 'Editar serie' : 'Añadir serie'}</Text><Pressable onPress={() => setSetForm(null)}><Text style={styles.link}>Cerrar</Text></Pressable></View>{setForm && activeSetExercise && <ScrollView contentContainerStyle={styles.content}>
       <Text style={styles.label}>{activeSetExercise.configuration.doseUnit}</Text><TextInput style={styles.input} keyboardType="decimal-pad" value={setForm.dose} onChangeText={(dose) => setSetForm((old) => old && { ...old, dose })} />
-      {NUMERIC_LOADS.includes(activeSetExercise.configuration.loadMode) && <><Text style={styles.label}>Carga (kg)</Text><TextInput style={styles.input} keyboardType="decimal-pad" value={setForm.load} onChangeText={(load) => setSetForm((old) => old && { ...old, load })} /></>}
+      {numericLoadLabel(activeSetExercise.configuration.loadMode) && <><Text style={styles.label}>{numericLoadLabel(activeSetExercise.configuration.loadMode)}</Text><TextInput style={styles.input} keyboardType="decimal-pad" value={setForm.load} onChangeText={(load) => setSetForm((old) => old && { ...old, load })} /></>}
       {activeSetExercise.configuration.loadMode === 'BAND_LABEL' && <><Text style={styles.label}>Banda / resistencia</Text><TextInput style={styles.input} value={setForm.loadLabel} onChangeText={(loadLabel) => setSetForm((old) => old && { ...old, loadLabel })} /></>}
       {(activeSetExercise.selection.laterality === 'UNILATERAL' || activeSetExercise.selection.laterality === 'ALTERNATING') && <Pressable style={styles.secondary} onPress={() => setSetForm((old) => old && { ...old, perSide: !old.perSide })}><Text>{setForm.perSide ? '✓' : '○'} Por lado</Text></Pressable>}
       <Text style={styles.label}>RIR (opcional)</Text><TextInput style={styles.input} keyboardType="number-pad" value={setForm.rir} onChangeText={(rir) => setSetForm((old) => old && { ...old, rir })} />

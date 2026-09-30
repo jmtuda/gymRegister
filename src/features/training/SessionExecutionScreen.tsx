@@ -7,11 +7,12 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import { createUuid } from '../../domain/id.ts';
-import type { PerformedSet, SessionExercise, LoadMode, TrainingSession } from '../../domain/training.ts';
+import type { PerformedSet, SessionExercise, TrainingSession } from '../../domain/training.ts';
 import { createHistoryRepository } from '../../data/historyRepository.ts';
 import { createManualSessionRepository } from '../../data/manualSessionRepository.ts';
 import { createSessionExecutionRepository } from '../../data/sessionExecutionRepository.ts';
 import { labelForOption } from '../exercises/catalogPresentation.ts';
+import { numericLoadLabel } from '../shared/loadModePresentation.ts';
 import { INITIAL_REST_TIMER, isRestTimerActive, restTimerReducer } from './restTimer.ts';
 
 type Props = {
@@ -27,10 +28,6 @@ type SetForm = {
   loadLabel: string; rir: string; perSide: boolean;
 };
 
-const LOAD_LABELS: Partial<Record<LoadMode, string>> = {
-  TOTAL_KG: 'kg totales', IMPLEMENT_KG: 'kg por implemento',
-  DISPLAYED_KG: 'kg mostrados por máquina/polea', ASSISTANCE_KG: 'kg de asistencia',
-};
 const DOSE_LABELS = { reps: 'Repeticiones', seconds: 'Segundos', meters: 'Metros' };
 const formatTime = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 
@@ -191,7 +188,7 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
           <View style={styles.modalHeader}><Text style={styles.modalTitle}>{form?.editingId ? 'Editar serie' : 'Nueva serie'}</Text><Pressable onPress={() => setForm(null)}><Text style={styles.link}>Cerrar</Text></Pressable></View>
           {form && context && <ScrollView contentContainerStyle={styles.form}>
             <Text style={styles.label}>{DOSE_LABELS[context.dose_unit]}</Text><TextInput keyboardType="decimal-pad" style={styles.input} value={form.dose} onChangeText={(dose) => setForm((old) => old && ({ ...old, dose }))} />
-            {LOAD_LABELS[context.load_mode] && <><Text style={styles.label}>{LOAD_LABELS[context.load_mode]}</Text><TextInput keyboardType="decimal-pad" style={styles.input} value={form.load} onChangeText={(load) => setForm((old) => old && ({ ...old, load }))} /></>}
+            {numericLoadLabel(context.load_mode) && <><Text style={styles.label}>{numericLoadLabel(context.load_mode)}</Text><TextInput keyboardType="decimal-pad" style={styles.input} value={form.load} onChangeText={(load) => setForm((old) => old && ({ ...old, load }))} /></>}
             {context.load_mode === 'BAND_LABEL' && <><Text style={styles.label}>Banda / resistencia</Text><TextInput style={styles.input} value={form.loadLabel} placeholder="Roja, fuerte, banda 25 kg…" onChangeText={(loadLabel) => setForm((old) => old && ({ ...old, loadLabel }))} /></>}
             {(context.selected_laterality === 'UNILATERAL' || context.selected_laterality === 'ALTERNATING') && <Pressable style={styles.toggle} onPress={() => setForm((old) => old && ({ ...old, perSide: !old.perSide }))}><Text style={styles.toggleText}>{form.perSide ? '✓' : '○'} Por lado</Text></Pressable>}
             <Text style={styles.label}>RIR (opcional, 0–5)</Text><TextInput keyboardType="number-pad" style={styles.input} value={form.rir} onChangeText={(rir) => setForm((old) => old && ({ ...old, rir }))} />

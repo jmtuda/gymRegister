@@ -14,6 +14,7 @@ import type { CatalogSeedData } from '../src/domain/catalog.ts';
 import { createUuid } from '../src/domain/id.ts';
 import { buildExportDocument } from '../src/features/export/exportModel.ts';
 import { serializeExportCsv, serializeExportJson } from '../src/features/export/exportSerializers.ts';
+import { numericLoadLabel } from '../src/features/shared/loadModePresentation.ts';
 
 function createDatabase(): { sqlite: DatabaseSync; database: Database } {
   const sqlite = new DatabaseSync(':memory:');
@@ -37,6 +38,26 @@ async function setup() {
     exports: createExportRepository(value.database),
   };
 }
+
+test('las etiquetas de carga conservan la semántica exacta del load_mode', () => {
+  assert.deepEqual([
+    numericLoadLabel('TOTAL_KG'),
+    numericLoadLabel('IMPLEMENT_KG'),
+    numericLoadLabel('DISPLAYED_KG'),
+    numericLoadLabel('ASSISTANCE_KG'),
+    numericLoadLabel('BAND_LABEL'),
+    numericLoadLabel('BODYWEIGHT'),
+    numericLoadLabel('NONE'),
+  ], [
+    'kg totales',
+    'kg por implemento',
+    'kg mostrados por máquina/polea',
+    'kg de asistencia',
+    null,
+    null,
+    null,
+  ]);
+});
 
 test('confirmar una serie informa creación una sola vez para no duplicar el descanso', async () => {
   const { sqlite, sessions, execution } = await setup();
