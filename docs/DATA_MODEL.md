@@ -152,6 +152,12 @@ Mientras la sesión está `draft` o `in_progress`:
 
 Al completar la sesión se considera cerrada para el flujo normal.
 
+El alta histórica manual no utiliza estados `draft` ni `in_progress`: construye
+la entrada en memoria y crea en una única transacción la sesión `completed`, sus
+ejercicios y sus series. `completed_at` procede del usuario; `started_at` se
+calcula solo si indica duración; `created_at`, `updated_at` y `confirmed_at`
+representan el momento real de guardado.
+
 ## Borrado y desactivación
 
 Los elementos del catálogo que ya aparezcan en historial no deben borrarse físicamente.
@@ -159,6 +165,17 @@ Los elementos del catálogo que ya aparezcan en historial no deben borrarse fís
 Se usa `active = 0`.
 
 Las sesiones completadas tampoco deben depender de que una configuración siga activa.
+Permanecen inmutables para la edición ordinaria, pero pueden borrarse explícitamente.
+La eliminación valida el estado y se ejecuta en una transacción exclusiva; las
+cascadas de `session_exercises` y `performed_sets` evitan datos huérfanos.
+
+## Defaults de captura
+
+La consulta de últimos valores reutilizables vive en el repositorio. Prioriza la
+última serie del mismo `session_exercise` y después la última sesión `completed`
+con igual ejercicio, configuración y selecciones concretas. Solo devuelve datos
+si `dose_unit` y `load_mode` siguen siendo idénticos. Es una lectura: no crea
+ningún hecho en `performed_sets`.
 
 ## Exportación
 

@@ -34,6 +34,10 @@ export type EditSetInput = SetValues & {
   sessionExerciseId: string;
   now?: string;
 };
+export type ReusableSetDefaults = SetValues & {
+  doseUnit: DoseUnit;
+  loadMode: LoadMode;
+};
 
 const NUMERIC_LOAD_MODES: LoadMode[] = [
   'TOTAL_KG', 'IMPLEMENT_KG', 'DISPLAYED_KG', 'ASSISTANCE_KG',
@@ -61,7 +65,7 @@ async function getContext(database: DatabaseConnection, sessionExerciseId: strin
   return context;
 }
 
-function validateValues(context: SetSemantics, values: SetValues) {
+export function validateSetValues(context: SetSemantics, values: SetValues) {
   if (!Number.isFinite(values.doseValue) || values.doseValue <= 0) {
     throw new Error('La dosis debe ser mayor que cero.');
   }
@@ -129,6 +133,45 @@ async function compactSetOrder(database: DatabaseConnection, sessionExerciseId: 
 }
 
 export function createSessionExecutionRepository(database: Database) {
+  const confirmSetWithStatus = async (input: ConfirmSetInput): Promise<{ set: PerformedSet; created: boolean }> => {
+    let result: PerformedSet | null = null;
+    let created = false;
+    await database.withExclusiveTransactionAsync(async (transaction) => {
+      const context = await getContext(transaction, input.sessionExerciseId);
+      const existing = await transaction.getFirstAsync<SetRow>(
+        'SELECT * FROM performed_sets WHERE id = ?', input.attemptId,
+      );
+      if (existing) {
+        if (existing.session_exercise_id !== input.sessionExerciseId) {
+          throw new Error('El intento de confirmación pertenece a otro ejercicio.');
+        }
+        result = mapSet(existing);
+        return;
+      }
+      const values = validateSetValues(context, input);
+      const order = await transaction.getFirstAsync<{ next_index: number }>(
+        'SELECT COALESCE(MAX(set_index) + 1, 0) AS next_index FROM performed_sets WHERE session_exercise_id = ?',
+        input.sessionExerciseId,
+      );
+      const now = input.now ?? new Date().toISOString();
+      await transaction.runAsync(
+        `INSERT INTO performed_sets
+          (id, session_exercise_id, set_index, dose_unit, dose_value, per_side, load_mode,
+           load_value, load_label, rir, confirmed_at, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        input.attemptId, input.sessionExerciseId, Number(order?.next_index ?? 0), context.dose_unit,
+        values.doseValue, values.perSide ? 1 : 0, context.load_mode, values.loadValue,
+        values.loadLabel, values.rir, now, now, now,
+      );
+      result = mapSet((await transaction.getFirstAsync<SetRow>(
+        'SELECT * FROM performed_sets WHERE id = ?', input.attemptId,
+      ))!);
+      created = true;
+    });
+    if (!result) throw new Error('No se pudo confirmar la serie.');
+    return { set: result, created };
+  };
+
   return {
     async getExecutionContext(sessionExerciseId: string) {
       return getContext(database, sessionExerciseId);
@@ -138,41 +181,44 @@ export function createSessionExecutionRepository(database: Database) {
       return listSets(database, sessionExerciseId);
     },
 
+    async getReusableSetDefaults(sessionExerciseId: string): Promise<ReusableSetDefaults | null> {
+      const context = await getContext(database, sessionExerciseId);
+      const row = await database.getFirstAsync<SetRow>(
+        `SELECT performed_sets.*
+         FROM performed_sets
+         JOIN session_exercises AS source ON source.id = performed_sets.session_exercise_id
+         JOIN session_exercises AS current ON current.id = ?
+         JOIN training_sessions ON training_sessions.id = source.session_id
+         WHERE (
+           source.id = current.id
+           OR (
+             training_sessions.status = 'completed'
+             AND source.exercise_id = current.exercise_id
+             AND source.configuration_id = current.configuration_id
+             AND source.selected_equipment IS current.selected_equipment
+             AND source.selected_laterality IS current.selected_laterality
+             AND source.selected_grip IS current.selected_grip
+             AND source.selected_grip_width IS current.selected_grip_width
+           )
+         )
+         ORDER BY (source.id = current.id) DESC,
+           CASE WHEN source.id = current.id THEN performed_sets.set_index END DESC,
+           training_sessions.completed_at DESC, performed_sets.confirmed_at DESC,
+           performed_sets.set_index DESC
+         LIMIT 1`,
+        sessionExerciseId,
+      );
+      if (!row || row.dose_unit !== context.dose_unit || row.load_mode !== context.load_mode) return null;
+      return {
+        doseUnit: row.dose_unit, doseValue: row.dose_value, perSide: row.per_side === 1,
+        loadMode: row.load_mode, loadValue: row.load_value, loadLabel: row.load_label, rir: row.rir,
+      };
+    },
+
+    confirmSetWithStatus,
+
     async confirmSet(input: ConfirmSetInput): Promise<PerformedSet> {
-      let result: PerformedSet | null = null;
-      await database.withExclusiveTransactionAsync(async (transaction) => {
-        const context = await getContext(transaction, input.sessionExerciseId);
-        const existing = await transaction.getFirstAsync<SetRow>(
-          'SELECT * FROM performed_sets WHERE id = ?', input.attemptId,
-        );
-        if (existing) {
-          if (existing.session_exercise_id !== input.sessionExerciseId) {
-            throw new Error('El intento de confirmación pertenece a otro ejercicio.');
-          }
-          result = mapSet(existing);
-          return;
-        }
-        const values = validateValues(context, input);
-        const order = await transaction.getFirstAsync<{ next_index: number }>(
-          'SELECT COALESCE(MAX(set_index) + 1, 0) AS next_index FROM performed_sets WHERE session_exercise_id = ?',
-          input.sessionExerciseId,
-        );
-        const now = input.now ?? new Date().toISOString();
-        await transaction.runAsync(
-          `INSERT INTO performed_sets
-            (id, session_exercise_id, set_index, dose_unit, dose_value, per_side, load_mode,
-             load_value, load_label, rir, confirmed_at, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          input.attemptId, input.sessionExerciseId, Number(order?.next_index ?? 0), context.dose_unit,
-          values.doseValue, values.perSide ? 1 : 0, context.load_mode, values.loadValue,
-          values.loadLabel, values.rir, now, now, now,
-        );
-        result = mapSet((await transaction.getFirstAsync<SetRow>(
-          'SELECT * FROM performed_sets WHERE id = ?', input.attemptId,
-        ))!);
-      });
-      if (!result) throw new Error('No se pudo confirmar la serie.');
-      return result;
+      return (await confirmSetWithStatus(input)).set;
     },
 
     async editSet(input: EditSetInput): Promise<PerformedSet> {
@@ -185,7 +231,7 @@ export function createSessionExecutionRepository(database: Database) {
         if (!existing || existing.session_exercise_id !== input.sessionExerciseId) {
           throw new Error('La serie no pertenece a este ejercicio de sesión.');
         }
-        const values = validateValues({
+        const values = validateSetValues({
           selected_laterality: context.selected_laterality,
           dose_unit: existing.dose_unit,
           load_mode: existing.load_mode,

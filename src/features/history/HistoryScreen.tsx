@@ -13,6 +13,7 @@ import type { PerformedSet } from '../../domain/training.ts';
 import { labelForOption } from '../exercises/catalogPresentation.ts';
 import { createExportGate } from '../export/exportGate.ts';
 import { createExportService } from '../export/exportService.ts';
+import { ManualCompletedSessionScreen } from './ManualCompletedSessionScreen.tsx';
 
 const DATE_FORMAT = new Intl.DateTimeFormat('es-ES', {
   dateStyle: 'medium', timeStyle: 'short',
@@ -58,6 +59,7 @@ export function HistoryScreen() {
   const [loading, setLoading] = useState(true);
   const [exportOpen, setExportOpen] = useState(false);
   const [exporting, setExporting] = useState<ExportFormat | null>(null);
+  const [manualOpen, setManualOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -87,6 +89,20 @@ export function HistoryScreen() {
       }
     });
   };
+  const deleteSession = () => {
+    if (!detail) return;
+    Alert.alert(
+      'Eliminar sesión',
+      'Se eliminarán definitivamente la sesión, sus ejercicios y todas sus series.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Eliminar sesión', style: 'destructive', onPress: () => void (async () => {
+          try { await history.deleteCompletedSession(detail.session.id); setDetail(null); await refresh(); }
+          catch (reason) { Alert.alert('No se pudo eliminar', reason instanceof Error ? reason.message : 'Error inesperado.'); }
+        })() },
+      ],
+    );
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -94,6 +110,7 @@ export function HistoryScreen() {
         <Text style={styles.eyebrow}>HISTORIAL</Text>
         <Text style={styles.title}>Sesiones completadas</Text>
         <Text style={styles.subtitle}>Consulta exactamente lo que registraste.</Text>
+        <Pressable style={styles.addButton} onPress={() => setManualOpen(true)}><Text style={styles.exportButtonText}>Añadir sesión</Text></Pressable>
         <Pressable
           disabled={exporting !== null} style={[styles.exportButton, exporting !== null && styles.disabledButton]}
           onPress={() => {
@@ -161,8 +178,13 @@ export function HistoryScreen() {
                 ))}
               </View>
             ))}
+            <Pressable style={styles.deleteButton} onPress={deleteSession}><Text style={styles.deleteButtonText}>Eliminar sesión</Text></Pressable>
           </ScrollView>}
         </SafeAreaView>
+      </Modal>
+
+      <Modal visible={manualOpen} animationType="slide" onRequestClose={() => setManualOpen(false)}>
+        <ManualCompletedSessionScreen onClose={() => setManualOpen(false)} onSaved={refresh} />
       </Modal>
 
       <Modal visible={exportOpen} transparent animationType="fade" onRequestClose={() => setExportOpen(false)}>
@@ -187,6 +209,7 @@ const styles = StyleSheet.create({
   title: { color: '#0f172a', fontSize: 30, fontWeight: '800', marginTop: 4 },
   subtitle: { color: '#64748b', fontSize: 16, marginTop: 6 },
   exportButton: { alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#0e7490', borderRadius: 10, flexDirection: 'row', gap: 8, marginTop: 14, paddingHorizontal: 14, paddingVertical: 11 },
+  addButton: { alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#16a34a', borderRadius: 10, marginTop: 14, paddingHorizontal: 14, paddingVertical: 11 },
   exportButtonText: { color: '#fff', fontWeight: '800' }, disabledButton: { opacity: 0.55 },
   loader: { flex: 1 }, list: { gap: 12, padding: 16, paddingBottom: 48 },
   emptyList: { flexGrow: 1, justifyContent: 'center' },
@@ -209,4 +232,5 @@ const styles = StyleSheet.create({
   exportDescription: { color: '#64748b', lineHeight: 21, marginBottom: 16, marginTop: 7 },
   exportOption: { alignItems: 'center', backgroundColor: '#0e7490', borderRadius: 10, marginTop: 9, padding: 13 },
   exportOptionText: { color: '#fff', fontWeight: '800' }, cancelOption: { alignItems: 'center', marginTop: 16, padding: 8 },
+  deleteButton: { alignItems: 'center', borderColor: '#b91c1c', borderRadius: 10, borderWidth: 1, marginTop: 12, padding: 13 }, deleteButtonText: { color: '#b91c1c', fontWeight: '800' },
 });
