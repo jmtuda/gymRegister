@@ -105,7 +105,16 @@ El usuario puede:
 - saltar a otro ejercicio;
 - añadir nuevos ejercicios a la sesión;
 - reordenar ejercicios si fuera necesario;
-- usar el temporizador de descanso.
+- iniciar automáticamente un descanso de 60 segundos después de confirmar una serie nueva.
+
+El descanso se muestra a pantalla completa, permite sumar o restar 15 segundos y
+puede omitirse. La cuenta usa una hora de finalización, mantiene la pantalla
+despierta solo mientras está activa y nunca se muestra fuera de gymRegister.
+
+Al preparar la siguiente serie se precargan, como ayuda editable, los últimos
+valores compatibles del mismo ejercicio en la sesión actual o, si aún no existe
+ninguno, de la última sesión completada con la misma configuración concreta.
+Estos valores no cuentan como realizados hasta confirmar la nueva serie.
 
 No existe un número de series previsto.
 
@@ -171,6 +180,11 @@ abrir la hoja nativa para compartir o guardar el archivo. La exportación funcio
 offline. Si todavía no existen sesiones completadas, se informa al usuario y no se
 genera ningún archivo.
 
+Desde Historial también se puede añadir a posteriori una sesión ya realizada sin
+interferir con una sesión en curso. El borrador se mantiene exclusivamente en la
+interfaz y se guarda de forma atómica como `completed`. El detalle permite borrar
+explícitamente una sesión completada, con confirmación destructiva.
+
 ## 3. Ejercicios
 
 Permite explorar el catálogo con el mismo flujo:
@@ -195,7 +209,7 @@ draft → in_progress → completed
 Reglas:
 
 - solo puede existir una sesión activa `in_progress`;
-- una sesión `completed` no se modifica en el flujo normal;
+- una sesión `completed` no se edita ni reabre; solo puede eliminarse mediante la acción destructiva explícita;
 - las series confirmadas son hechos realizados;
 - no se crean series automáticamente;
 - no se rellenan valores no introducidos por el usuario.

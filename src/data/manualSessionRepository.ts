@@ -1,5 +1,6 @@
 import { createUuid } from '../domain/id.ts';
-import type { SessionExercise, TrainingSession } from '../domain/training.ts';
+import type { DoseUnit, LoadMode, SessionExercise, TrainingSession } from '../domain/training.ts';
+import { validateSetValues, type SetValues } from './sessionExecutionRepository.ts';
 import type { Database, DatabaseConnection } from './types.ts';
 
 type SessionRow = {
@@ -18,6 +19,7 @@ type CatalogSelectionRow = {
   configuration_id: string; configuration_name: string; configuration_active: number;
   configuration_exercise_id: string; equipment_options: string; laterality_options: string | null;
   grip_options: string | null; grip_width_options: string | null;
+  dose_unit: DoseUnit; load_mode: LoadMode;
 };
 
 export type AddSessionExerciseInput = {
@@ -29,6 +31,26 @@ export type AddSessionExerciseInput = {
   selectedLaterality?: string | null;
   selectedGrip?: string | null;
   selectedGripWidth?: string | null;
+  now?: string;
+};
+export type ManualCompletedSetInput = SetValues & { id?: string };
+export type ManualCompletedExerciseInput = {
+  id?: string;
+  exerciseId: string;
+  configurationId: string;
+  selectedEquipment?: string | null;
+  selectedLaterality?: string | null;
+  selectedGrip?: string | null;
+  selectedGripWidth?: string | null;
+  note?: string | null;
+  sets: ManualCompletedSetInput[];
+};
+export type CreateCompletedSessionManualInput = {
+  id?: string;
+  completedAt: string;
+  durationMinutes?: number | null;
+  note?: string | null;
+  exercises: ManualCompletedExerciseInput[];
   now?: string;
 };
 
@@ -101,6 +123,90 @@ async function compactOrder(database: DatabaseConnection, sessionId: string, ord
 
 export function createManualSessionRepository(database: Database) {
   return {
+    async createCompletedSessionManual(input: CreateCompletedSessionManualInput): Promise<TrainingSession> {
+      const completedMs = Date.parse(input.completedAt);
+      if (!Number.isFinite(completedMs)) throw new Error('La fecha y hora del entrenamiento son obligatorias.');
+      if (input.durationMinutes !== null && input.durationMinutes !== undefined
+        && (!Number.isFinite(input.durationMinutes) || input.durationMinutes <= 0)) {
+        throw new Error('La duración debe ser mayor que cero.');
+      }
+      const sessionId = input.id ?? createUuid();
+      const now = input.now ?? new Date().toISOString();
+      const startedAt = input.durationMinutes === null || input.durationMinutes === undefined
+        ? null : new Date(completedMs - input.durationMinutes * 60_000).toISOString();
+      let result: TrainingSession | null = null;
+
+      await database.withExclusiveTransactionAsync(async (transaction) => {
+        await transaction.runAsync(
+          `INSERT INTO training_sessions
+            (id, status, note, created_at, started_at, completed_at, updated_at)
+           VALUES (?, 'completed', ?, ?, ?, ?, ?)`,
+          sessionId, input.note?.trim() || null, now, startedAt,
+          new Date(completedMs).toISOString(), now,
+        );
+        for (let exerciseIndex = 0; exerciseIndex < input.exercises.length; exerciseIndex += 1) {
+          const exercise = input.exercises[exerciseIndex];
+          const catalog = await transaction.getFirstAsync<CatalogSelectionRow>(
+            `SELECT exercises.id AS exercise_id, exercises.name_es AS exercise_name,
+              exercises.active AS exercise_active, configurations.id AS configuration_id,
+              configurations.name_es AS configuration_name, configurations.active AS configuration_active,
+              configurations.exercise_id AS configuration_exercise_id,
+              configurations.equipment_options, configurations.laterality_options,
+              configurations.grip_options, configurations.grip_width_options,
+              configurations.dose_unit, configurations.load_mode
+             FROM exercises
+             JOIN exercise_configurations AS configurations ON configurations.id = ?
+             WHERE exercises.id = ?`,
+            exercise.configurationId, exercise.exerciseId,
+          );
+          if (!catalog || catalog.configuration_exercise_id !== exercise.exerciseId) {
+            throw new Error('La configuración no pertenece al ejercicio.');
+          }
+          if (catalog.exercise_active !== 1 || catalog.configuration_active !== 1) {
+            throw new Error('Solo se pueden añadir elementos activos.');
+          }
+          const selectedEquipment = resolveSelection('Equipamiento', parseOptions(catalog.equipment_options), exercise.selectedEquipment);
+          const selectedLaterality = resolveSelection('Lateralidad', parseOptions(catalog.laterality_options), exercise.selectedLaterality);
+          const selectedGrip = resolveSelection('Agarre', parseOptions(catalog.grip_options), exercise.selectedGrip);
+          const selectedGripWidth = resolveSelection('Anchura de agarre', parseOptions(catalog.grip_width_options), exercise.selectedGripWidth);
+          const sessionExerciseId = exercise.id ?? createUuid();
+          await transaction.runAsync(
+            `INSERT INTO session_exercises
+              (id, session_id, exercise_id, configuration_id, exercise_name_snapshot,
+               configuration_name_snapshot, order_index, selected_equipment, selected_laterality,
+               selected_grip, selected_grip_width, note, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            sessionExerciseId, sessionId, exercise.exerciseId, exercise.configurationId,
+            catalog.exercise_name, catalog.configuration_name, exerciseIndex, selectedEquipment,
+            selectedLaterality, selectedGrip, selectedGripWidth, exercise.note?.trim() || null, now, now,
+          );
+          for (let setIndex = 0; setIndex < exercise.sets.length; setIndex += 1) {
+            const set = exercise.sets[setIndex];
+            const values = validateSetValues({
+              selected_laterality: selectedLaterality,
+              dose_unit: catalog.dose_unit,
+              load_mode: catalog.load_mode,
+            }, set);
+            await transaction.runAsync(
+              `INSERT INTO performed_sets
+                (id, session_exercise_id, set_index, dose_unit, dose_value, per_side,
+                 load_mode, load_value, load_label, rir, confirmed_at, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              set.id ?? createUuid(), sessionExerciseId, setIndex, catalog.dose_unit,
+              values.doseValue, values.perSide ? 1 : 0, catalog.load_mode, values.loadValue,
+              values.loadLabel, values.rir, now, now, now,
+            );
+          }
+        }
+        const row = await transaction.getFirstAsync<SessionRow>(
+          'SELECT * FROM training_sessions WHERE id = ?', sessionId,
+        );
+        result = row ? mapSession(row) : null;
+      });
+      if (!result) throw new Error('No se pudo crear la sesión completada.');
+      return result;
+    },
+
     async getSessionById(id: string): Promise<TrainingSession | null> {
       const row = await database.getFirstAsync<SessionRow>('SELECT * FROM training_sessions WHERE id = ?', id);
       return row ? mapSession(row) : null;
@@ -181,7 +287,8 @@ export function createManualSessionRepository(database: Database) {
             configurations.name_es AS configuration_name, configurations.active AS configuration_active,
             configurations.exercise_id AS configuration_exercise_id,
             configurations.equipment_options, configurations.laterality_options,
-            configurations.grip_options, configurations.grip_width_options
+            configurations.grip_options, configurations.grip_width_options,
+            configurations.dose_unit, configurations.load_mode
            FROM exercises
            JOIN exercise_configurations AS configurations ON configurations.id = ?
            WHERE exercises.id = ?`,

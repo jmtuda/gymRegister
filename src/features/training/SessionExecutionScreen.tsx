@@ -3,6 +3,7 @@ import {
   Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useKeepAwake } from 'expo-keep-awake';
 import { useSQLiteContext } from 'expo-sqlite';
 
 import { createUuid } from '../../domain/id.ts';
@@ -11,7 +12,7 @@ import { createHistoryRepository } from '../../data/historyRepository.ts';
 import { createManualSessionRepository } from '../../data/manualSessionRepository.ts';
 import { createSessionExecutionRepository } from '../../data/sessionExecutionRepository.ts';
 import { labelForOption } from '../exercises/catalogPresentation.ts';
-import { INITIAL_REST_TIMER, restTimerReducer } from './restTimer.ts';
+import { INITIAL_REST_TIMER, isRestTimerActive, restTimerReducer } from './restTimer.ts';
 
 type Props = {
   session: TrainingSession;
@@ -38,6 +39,11 @@ function formatSet(value: PerformedSet) {
   const load = value.loadValue !== null ? `${value.loadValue} kg` : value.loadLabel;
   return [dose, value.perSide ? 'por lado' : null, load, value.rir !== null ? `RIR ${value.rir}` : null]
     .filter(Boolean).join(' · ');
+}
+
+function ActiveRestKeepAwake() {
+  useKeepAwake('gymregister-active-rest', { suppressDeactivateWarnings: true });
+  return null;
 }
 
 export function SessionExecutionScreen({ session, items, onAddExercise, onRefresh, onCompleted }: Props) {
@@ -70,17 +76,21 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
   }, [activeId, items]);
   useEffect(() => {
     if (!timer.running) return undefined;
-    const interval = setInterval(() => dispatchTimer({ type: 'tick' }), 1000);
+    const interval = setInterval(() => dispatchTimer({ type: 'sync' }), 250);
     return () => clearInterval(interval);
   }, [timer.running]);
 
   const openNewSet = async (item: SessionExercise) => {
     try {
       const value = await execution.getExecutionContext(item.id);
+      const defaults = await execution.getReusableSetDefaults(item.id);
       setContext(value);
       setForm({
-        attemptId: createUuid(), editingId: null, dose: '', load: '', loadLabel: '', rir: '',
-        perSide: value.selected_laterality === 'UNILATERAL' || value.selected_laterality === 'ALTERNATING',
+        attemptId: createUuid(), editingId: null,
+        dose: defaults ? String(defaults.doseValue) : '',
+        load: defaults?.loadValue === null || defaults?.loadValue === undefined ? '' : String(defaults.loadValue),
+        loadLabel: defaults?.loadLabel ?? '', rir: defaults?.rir === null || defaults?.rir === undefined ? '' : String(defaults.rir),
+        perSide: defaults?.perSide ?? (value.selected_laterality === 'UNILATERAL' || value.selected_laterality === 'ALTERNATING'),
       });
     } catch (reason) { Alert.alert('No se pudo abrir la serie', reason instanceof Error ? reason.message : 'Error inesperado.'); }
   };
@@ -107,9 +117,12 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
       if (form.editingId) await execution.editSet({
         ...values, setId: form.editingId, sessionExerciseId: context.session_exercise_id,
       });
-      else await execution.confirmSet({
-        ...values, attemptId: form.attemptId, sessionExerciseId: context.session_exercise_id,
-      });
+      else {
+        const result = await execution.confirmSetWithStatus({
+          ...values, attemptId: form.attemptId, sessionExerciseId: context.session_exercise_id,
+        });
+        if (result.created) dispatchTimer({ type: 'start', seconds: 60 });
+      }
       setForm(null); setContext(null); await loadSets();
     } catch (reason) { Alert.alert('No se pudo guardar', reason instanceof Error ? reason.message : 'Error inesperado.'); }
     finally { setSubmitting(false); }
@@ -149,15 +162,8 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
 
   return (
     <>
+      {isRestTimerActive(timer) && <ActiveRestKeepAwake />}
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.timerCard}>
-          <View><Text style={styles.timerTitle}>Descanso</Text><Text style={styles.timerValue}>{formatTime(timer.remaining)}</Text></View>
-          <View style={styles.timerActions}>
-            {[60, 90, 120].map((seconds) => <Pressable key={seconds} style={styles.smallButton} onPress={() => dispatchTimer({ type: 'start', seconds })}><Text style={styles.smallButtonText}>{seconds}s</Text></Pressable>)}
-            {timer.remaining > 0 && <Pressable style={styles.smallButton} onPress={() => dispatchTimer({ type: timer.running ? 'pause' : 'start', seconds: timer.remaining })}><Text style={styles.smallButtonText}>{timer.running ? 'Pausa' : 'Seguir'}</Text></Pressable>}
-            {timer.remaining > 0 && <Pressable onPress={() => dispatchTimer({ type: 'cancel' })}><Text style={styles.danger}>Cancelar</Text></Pressable>}
-          </View>
-        </View>
         <Pressable style={styles.primaryButton} onPress={onAddExercise}><Text style={styles.primaryButtonText}>Añadir ejercicio</Text></Pressable>
         {items.map((item, index) => {
           const active = activeId === item.id;
@@ -189,8 +195,20 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
             {context.load_mode === 'BAND_LABEL' && <><Text style={styles.label}>Banda / resistencia</Text><TextInput style={styles.input} value={form.loadLabel} placeholder="Roja, fuerte, banda 25 kg…" onChangeText={(loadLabel) => setForm((old) => old && ({ ...old, loadLabel }))} /></>}
             {(context.selected_laterality === 'UNILATERAL' || context.selected_laterality === 'ALTERNATING') && <Pressable style={styles.toggle} onPress={() => setForm((old) => old && ({ ...old, perSide: !old.perSide }))}><Text style={styles.toggleText}>{form.perSide ? '✓' : '○'} Por lado</Text></Pressable>}
             <Text style={styles.label}>RIR (opcional, 0–5)</Text><TextInput keyboardType="number-pad" style={styles.input} value={form.rir} onChangeText={(rir) => setForm((old) => old && ({ ...old, rir }))} />
-            <Pressable disabled={submitting} style={[styles.primaryButton, submitting && styles.disabledButton]} onPress={() => void saveSet()}><Text style={styles.primaryButtonText}>{submitting ? 'Guardando…' : 'Confirmar serie'}</Text></Pressable>
+            <Pressable disabled={submitting} style={[styles.primaryButton, submitting && styles.disabledButton]} onPress={() => void saveSet()}><Text style={styles.primaryButtonText}>{submitting ? 'Guardando…' : 'Serie terminada'}</Text></Pressable>
           </ScrollView>}
+        </SafeAreaView>
+      </Modal>
+
+      <Modal visible={isRestTimerActive(timer)} animationType="fade" onRequestClose={() => dispatchTimer({ type: 'cancel' })}>
+        <SafeAreaView style={styles.restScreen}>
+          <Text style={styles.restTitle}>Descanso</Text>
+          <Text accessibilityLabel={`${timer.remaining} segundos restantes`} style={styles.restValue}>{formatTime(timer.remaining)}</Text>
+          <View style={styles.restAdjustments}>
+            <Pressable style={styles.restAdjustButton} onPress={() => dispatchTimer({ type: 'adjust', seconds: -15 })}><Text style={styles.restAdjustText}>−15 s</Text></Pressable>
+            <Pressable style={styles.restAdjustButton} onPress={() => dispatchTimer({ type: 'adjust', seconds: 15 })}><Text style={styles.restAdjustText}>+15 s</Text></Pressable>
+          </View>
+          <Pressable style={styles.skipRestButton} onPress={() => dispatchTimer({ type: 'cancel' })}><Text style={styles.skipRestText}>Cerrar / Omitir descanso</Text></Pressable>
         </SafeAreaView>
       </Modal>
 
@@ -219,7 +237,11 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8fafc' }, content: { gap: 12, padding: 16, paddingBottom: 48 }, timerCard: { alignItems: 'center', backgroundColor: '#ecfeff', borderRadius: 16, flexDirection: 'row', justifyContent: 'space-between', padding: 14 }, timerTitle: { color: '#155e75', fontWeight: '700' }, timerValue: { color: '#0e7490', fontSize: 28, fontWeight: '800' }, timerActions: { alignItems: 'center', flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-end', maxWidth: '70%' }, smallButton: { backgroundColor: '#cffafe', borderRadius: 8, padding: 8 }, smallButtonText: { color: '#155e75', fontWeight: '700' },
+  safeArea: { flex: 1, backgroundColor: '#f8fafc' }, content: { gap: 12, padding: 16, paddingBottom: 48 },
+  restScreen: { alignItems: 'center', backgroundColor: '#083344', flex: 1, justifyContent: 'center', padding: 24 },
+  restTitle: { color: '#cffafe', fontSize: 28, fontWeight: '800' }, restValue: { color: '#fff', fontSize: 88, fontVariant: ['tabular-nums'], fontWeight: '900', marginVertical: 30 },
+  restAdjustments: { flexDirection: 'row', gap: 18 }, restAdjustButton: { backgroundColor: '#155e75', borderRadius: 16, paddingHorizontal: 28, paddingVertical: 18 }, restAdjustText: { color: '#fff', fontSize: 20, fontWeight: '800' },
+  skipRestButton: { borderColor: '#67e8f9', borderRadius: 12, borderWidth: 1, marginTop: 40, paddingHorizontal: 20, paddingVertical: 14 }, skipRestText: { color: '#cffafe', fontSize: 16, fontWeight: '700' },
   primaryButton: { alignItems: 'center', backgroundColor: '#0e7490', borderRadius: 12, padding: 14 }, primaryButtonText: { color: '#fff', fontSize: 16, fontWeight: '800' }, exerciseCard: { backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: 16, borderWidth: 1, padding: 14 }, exerciseCardActive: { borderColor: '#0891b2', borderWidth: 2 }, exerciseHeader: { alignItems: 'center', flexDirection: 'row' }, exerciseTitleArea: { flex: 1 }, exerciseTitle: { color: '#0f172a', fontSize: 17, fontWeight: '800' }, configuration: { color: '#475569', marginTop: 3 }, selection: { color: '#0e7490', fontSize: 12, marginTop: 5 }, orderButtons: { flexDirection: 'row', gap: 14, marginLeft: 10 }, arrow: { color: '#0e7490', fontSize: 22, fontWeight: '800' }, disabled: { color: '#cbd5e1' }, exerciseBody: { borderTopColor: '#e2e8f0', borderTopWidth: 1, marginTop: 12, paddingTop: 10 }, setRow: { alignItems: 'center', borderBottomColor: '#f1f5f9', borderBottomWidth: 1, flexDirection: 'row', gap: 12, paddingVertical: 10 }, setText: { flex: 1 }, setTitle: { color: '#0f172a', fontWeight: '700' }, setDetail: { color: '#64748b', fontSize: 13, marginTop: 3 }, link: { color: '#0e7490', fontWeight: '700' }, danger: { color: '#b91c1c', fontWeight: '700' }, empty: { color: '#64748b', paddingVertical: 10 }, addSetButton: { alignItems: 'center', backgroundColor: '#cffafe', borderRadius: 10, marginTop: 10, padding: 12 }, addSetText: { color: '#155e75', fontWeight: '800' }, noteLabel: { color: '#334155', fontWeight: '700', marginTop: 14 }, noteInput: { borderColor: '#cbd5e1', borderRadius: 10, borderWidth: 1, color: '#0f172a', marginTop: 7, padding: 10 },
   finishButton: { alignItems: 'center', backgroundColor: '#b91c1c', borderRadius: 12, marginTop: 8, padding: 15 }, finishButtonText: { color: '#fff', fontWeight: '800' },
   modalHeader: { alignItems: 'center', borderBottomColor: '#e2e8f0', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', padding: 18 }, modalTitle: { color: '#0f172a', fontSize: 22, fontWeight: '800' }, form: { padding: 20, paddingBottom: 48 }, label: { color: '#334155', fontWeight: '700', marginBottom: 7, marginTop: 12 }, input: { backgroundColor: '#fff', borderColor: '#cbd5e1', borderRadius: 10, borderWidth: 1, color: '#0f172a', fontSize: 17, padding: 12 }, toggle: { backgroundColor: '#e2e8f0', borderRadius: 10, marginTop: 18, padding: 12 }, toggleText: { color: '#334155', fontWeight: '700' }, disabledButton: { opacity: 0.5 },

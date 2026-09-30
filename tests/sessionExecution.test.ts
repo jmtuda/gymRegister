@@ -11,7 +11,9 @@ import { createSessionExecutionRepository } from '../src/data/sessionExecutionRe
 import type { Database, DatabaseConnection } from '../src/data/types.ts';
 import type { CatalogSeedData } from '../src/domain/catalog.ts';
 import { createUuid } from '../src/domain/id.ts';
-import { INITIAL_REST_TIMER, restTimerReducer } from '../src/features/training/restTimer.ts';
+import {
+  INITIAL_REST_TIMER, isRestTimerActive, restTimerReducer,
+} from '../src/features/training/restTimer.ts';
 
 function createDatabase(): { sqlite: DatabaseSync; database: Database } {
   const sqlite = new DatabaseSync(':memory:');
@@ -336,10 +338,31 @@ test('reabrir el repositorio recupera todas las series confirmadas', async () =>
 test('el temporizador es estado efímero y no escribe datos históricos', async () => {
   const { sqlite } = await setup();
   const before = sqlite.prepare('SELECT COUNT(*) AS count FROM performed_sets').get()?.count;
-  const started = restTimerReducer(INITIAL_REST_TIMER, { type: 'start', seconds: 60 });
-  const ticked = restTimerReducer(started, { type: 'tick' });
+  const started = restTimerReducer(INITIAL_REST_TIMER, { type: 'start', seconds: 60, now: 1_000 });
+  const ticked = restTimerReducer(started, { type: 'sync', now: 2_000 });
   const cancelled = restTimerReducer(ticked, { type: 'cancel' });
   assert.deepEqual([started.remaining, ticked.remaining, cancelled], [60, 59, INITIAL_REST_TIMER]);
   assert.equal(sqlite.prepare('SELECT COUNT(*) AS count FROM performed_sets').get()?.count, before);
   sqlite.close();
+});
+
+test('keep-awake solo permanece activo durante una cuenta atrás en marcha', () => {
+  const started = restTimerReducer(INITIAL_REST_TIMER, { type: 'start', seconds: 2, now: 1_000 });
+  const lastSecond = restTimerReducer(started, { type: 'sync', now: 2_000 });
+  const finished = restTimerReducer(lastSecond, { type: 'sync', now: 3_000 });
+  const cancelled = restTimerReducer(started, { type: 'cancel' });
+
+  assert.deepEqual(
+    [started, lastSecond, finished, cancelled].map(isRestTimerActive),
+    [true, true, false, false],
+  );
+});
+
+test('el descanso usa deadline y los ajustes nunca producen tiempo negativo', () => {
+  const started = restTimerReducer(INITIAL_REST_TIMER, { type: 'start', seconds: 60, now: 10_000 });
+  const afterPause = restTimerReducer(started, { type: 'sync', now: 35_500 });
+  const shortened = restTimerReducer(afterPause, { type: 'adjust', seconds: -15, now: 35_500 });
+  const cancelledByAdjustment = restTimerReducer(shortened, { type: 'adjust', seconds: -30, now: 35_500 });
+  const extended = restTimerReducer(started, { type: 'adjust', seconds: 15, now: 10_000 });
+  assert.deepEqual([afterPause.remaining, shortened.remaining, cancelledByAdjustment, extended.remaining], [35, 20, INITIAL_REST_TIMER, 75]);
 });

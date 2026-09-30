@@ -55,9 +55,10 @@ Incluye:
 - número ilimitado de ejercicios por sesión;
 - registro de series, carga, RIR y dosis realizada;
 - ejercicios con repeticiones, segundos o metros según corresponda;
-- temporizador de descanso;
+- descanso automático a pantalla completa con temporizador y pantalla activa;
 - notas opcionales;
 - historial de sesiones;
+- alta manual y borrado explícito de sesiones históricas;
 - exportación CSV y JSON;
 - persistencia SQLite local;
 - posibilidad de añadir ejercicios y configuraciones personalizadas.

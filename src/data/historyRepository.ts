@@ -74,6 +74,15 @@ async function listSets(database: DatabaseConnection, sessionExerciseId: string)
 
 export function createHistoryRepository(database: Database) {
   return {
+    async deleteCompletedSession(sessionId: string): Promise<void> {
+      await database.withExclusiveTransactionAsync(async (transaction) => {
+        const session = await getSession(transaction, sessionId);
+        if (!session) throw new Error('Sesión no encontrada.');
+        if (session.status !== 'completed') throw new Error('Solo se puede eliminar una sesión completada.');
+        await transaction.runAsync('DELETE FROM training_sessions WHERE id = ? AND status = ?', sessionId, 'completed');
+      });
+    },
+
     async completeSession(
       sessionId: string,
       note: string | null = null,

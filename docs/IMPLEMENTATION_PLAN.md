@@ -178,6 +178,16 @@ persistida de cada serie mantienen estable el historial aunque cambie el catálo
 Las pruebas cubren recuperación tras recrear repositorios, idempotencia, rollback,
 inmutabilidad de sesiones completadas y exportación de solo lectura.
 
+## Ajustes posteriores al MVP móvil ✅
+
+- descanso automático de 60 segundos tras una serie nueva, calculado con deadline;
+- vista de descanso a pantalla completa, ajustes ±15 s y keep-awake limitado a la cuenta activa;
+- precarga editable de los últimos valores semánticamente compatibles;
+- borrado transaccional explícito de sesiones completadas;
+- alta histórica manual construida en memoria y persistida atómicamente;
+- cobertura de idempotencia, prioridad de defaults, rollback, coexistencia con una
+  sesión activa y exportación posterior.
+
 ## Fase posterior — Supabase (no iniciada)
 
 No iniciar hasta aprobar el MVP local.
