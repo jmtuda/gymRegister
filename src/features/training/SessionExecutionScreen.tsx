@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
   Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View,
 } from 'react-native';
@@ -13,6 +13,9 @@ import { createManualSessionRepository } from '../../data/manualSessionRepositor
 import { createSessionExecutionRepository } from '../../data/sessionExecutionRepository.ts';
 import { labelForOption } from '../exercises/catalogPresentation.ts';
 import { numericLoadLabel } from '../shared/loadModePresentation.ts';
+import {
+  createEditInlineSetForm, createNewInlineSetForm, saveInlineSet, type InlineSetForm,
+} from './inlineSetForm.ts';
 import { INITIAL_REST_TIMER, isRestTimerActive, restTimerReducer } from './restTimer.ts';
 
 type Props = {
@@ -23,11 +26,6 @@ type Props = {
   onCompleted: () => Promise<void>;
 };
 type Context = Awaited<ReturnType<ReturnType<typeof createSessionExecutionRepository>['getExecutionContext']>>;
-type SetForm = {
-  attemptId: string; editingId: string | null; dose: string; load: string;
-  loadLabel: string; rir: string; perSide: boolean;
-};
-
 const DOSE_LABELS = { reps: 'Repeticiones', seconds: 'Segundos', meters: 'Metros' };
 const formatTime = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 
@@ -50,8 +48,9 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
   const history = useMemo(() => createHistoryRepository(database), [database]);
   const [sets, setSets] = useState<Record<string, PerformedSet[]>>({});
   const [activeId, setActiveId] = useState<string | null>(items[0]?.id ?? null);
+  const activeIdRef = useRef(activeId);
   const [context, setContext] = useState<Context | null>(null);
-  const [form, setForm] = useState<SetForm | null>(null);
+  const [form, setForm] = useState<InlineSetForm | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [finishOpen, setFinishOpen] = useState(false);
   const [finalNote, setFinalNote] = useState(session.note ?? '');
@@ -67,6 +66,7 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
     }
   }, [execution, items]);
   useEffect(() => { void loadSets(); }, [loadSets]);
+  useEffect(() => { activeIdRef.current = activeId; }, [activeId]);
   useEffect(() => {
     if (activeId && items.some((item) => item.id === activeId)) return;
     setActiveId(items[0]?.id ?? null);
@@ -77,50 +77,46 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
     return () => clearInterval(interval);
   }, [timer.running]);
 
-  const openNewSet = async (item: SessionExercise) => {
+  const prepareNewSet = useCallback(async (item: SessionExercise) => {
     try {
       const value = await execution.getExecutionContext(item.id);
       const defaults = await execution.getReusableSetDefaults(item.id);
+      if (activeIdRef.current !== item.id) return;
       setContext(value);
-      setForm({
-        attemptId: createUuid(), editingId: null,
-        dose: defaults ? String(defaults.doseValue) : '',
-        load: defaults?.loadValue === null || defaults?.loadValue === undefined ? '' : String(defaults.loadValue),
-        loadLabel: defaults?.loadLabel ?? '', rir: defaults?.rir === null || defaults?.rir === undefined ? '' : String(defaults.rir),
-        perSide: defaults?.perSide ?? (value.selected_laterality === 'UNILATERAL' || value.selected_laterality === 'ALTERNATING'),
-      });
-    } catch (reason) { Alert.alert('No se pudo abrir la serie', reason instanceof Error ? reason.message : 'Error inesperado.'); }
+      setForm(createNewInlineSetForm(value, defaults, createUuid()));
+    } catch (reason) { Alert.alert('No se pudo preparar la serie', reason instanceof Error ? reason.message : 'Error inesperado.'); }
+  }, [execution]);
+  useEffect(() => {
+    const item = items.find((candidate) => candidate.id === activeId);
+    if (!item) { setContext(null); setForm(null); return; }
+    setContext(null);
+    setForm(null);
+    void prepareNewSet(item);
+  }, [activeId, items, prepareNewSet]);
+
+  const activateExercise = (item: SessionExercise) => {
+    if (item.id === activeId) return;
+    activeIdRef.current = item.id;
+    setContext(null);
+    setForm(null);
+    setActiveId(item.id);
   };
   const openEditSet = async (item: SessionExercise, value: PerformedSet) => {
     try {
       const currentContext = await execution.getExecutionContext(item.id);
       setContext({ ...currentContext, dose_unit: value.doseUnit, load_mode: value.loadMode });
-      setForm({
-        attemptId: value.id, editingId: value.id, dose: String(value.doseValue),
-        load: value.loadValue === null ? '' : String(value.loadValue), loadLabel: value.loadLabel ?? '',
-        rir: value.rir === null ? '' : String(value.rir), perSide: value.perSide,
-      });
+      setForm(createEditInlineSetForm(value));
     } catch (reason) { Alert.alert('No se pudo editar la serie', reason instanceof Error ? reason.message : 'Error inesperado.'); }
   };
   const saveSet = async () => {
     if (!form || !context || submitting) return;
     setSubmitting(true);
-    const values = {
-      doseValue: Number(form.dose), perSide: form.perSide,
-      loadValue: form.load === '' ? null : Number(form.load), loadLabel: form.loadLabel || null,
-      rir: form.rir === '' ? null : Number(form.rir),
-    };
     try {
-      if (form.editingId) await execution.editSet({
-        ...values, setId: form.editingId, sessionExerciseId: context.session_exercise_id,
-      });
-      else {
-        const result = await execution.confirmSetWithStatus({
-          ...values, attemptId: form.attemptId, sessionExerciseId: context.session_exercise_id,
-        });
-        if (result.created) dispatchTimer({ type: 'start', seconds: 60 });
-      }
-      setForm(null); setContext(null); await loadSets();
+      const item = items.find((candidate) => candidate.id === context.session_exercise_id);
+      const result = await saveInlineSet(execution, context.session_exercise_id, form);
+      await loadSets();
+      if (item) await prepareNewSet(item);
+      if (result.startRest) dispatchTimer({ type: 'start', seconds: 60 });
     } catch (reason) { Alert.alert('No se pudo guardar', reason instanceof Error ? reason.message : 'Error inesperado.'); }
     finally { setSubmitting(false); }
   };
@@ -165,7 +161,7 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
         {items.map((item, index) => {
           const active = activeId === item.id;
           return (
-            <Pressable key={item.id} style={[styles.exerciseCard, active && styles.exerciseCardActive]} onPress={() => setActiveId(item.id)}>
+            <Pressable key={item.id} style={[styles.exerciseCard, active && styles.exerciseCardActive]} onPress={() => activateExercise(item)}>
               <View style={styles.exerciseHeader}>
                 <View style={styles.exerciseTitleArea}><Text style={styles.exerciseTitle}>{index + 1}. {item.exerciseNameSnapshot}</Text><Text style={styles.configuration}>{item.configurationNameSnapshot}</Text><Text style={styles.selection}>{[item.selectedEquipment, item.selectedLaterality, item.selectedGrip, item.selectedGripWidth].filter(Boolean).map((value) => labelForOption(String(value))).join(' · ')}</Text></View>
                 <View style={styles.orderButtons}><Pressable disabled={index === 0} onPress={() => void move(index, -1)}><Text style={[styles.arrow, index === 0 && styles.disabled]}>↑</Text></Pressable><Pressable disabled={index === items.length - 1} onPress={() => void move(index, 1)}><Text style={[styles.arrow, index === items.length - 1 && styles.disabled]}>↓</Text></Pressable></View>
@@ -173,7 +169,18 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
               {active && <View style={styles.exerciseBody}>
                 {(sets[item.id] ?? []).map((value) => <View key={value.id} style={styles.setRow}><View style={styles.setText}><Text style={styles.setTitle}>Serie {value.setIndex + 1}</Text><Text style={styles.setDetail}>{formatSet(value)}</Text></View><Pressable onPress={() => void openEditSet(item, value)}><Text style={styles.link}>Editar</Text></Pressable><Pressable onPress={() => deleteSet(item, value)}><Text style={styles.danger}>Eliminar</Text></Pressable></View>)}
                 {(sets[item.id] ?? []).length === 0 && <Text style={styles.empty}>Sin series confirmadas.</Text>}
-                <Pressable style={styles.addSetButton} onPress={() => void openNewSet(item)}><Text style={styles.addSetText}>Añadir serie</Text></Pressable>
+                {form && context?.session_exercise_id === item.id ? <View style={styles.inlineForm}>
+                  <Text style={styles.formTitle}>{form.editingId ? 'Editar serie' : `Serie ${(sets[item.id] ?? []).length + 1}`}</Text>
+                  <Text style={styles.label}>{DOSE_LABELS[context.dose_unit]}</Text><TextInput keyboardType="decimal-pad" style={styles.input} value={form.dose} onChangeText={(dose) => setForm((old) => old && ({ ...old, dose }))} />
+                  {numericLoadLabel(context.load_mode) && <><Text style={styles.label}>{numericLoadLabel(context.load_mode)}</Text><TextInput keyboardType="decimal-pad" style={styles.input} value={form.load} onChangeText={(load) => setForm((old) => old && ({ ...old, load }))} /></>}
+                  {context.load_mode === 'BAND_LABEL' && <><Text style={styles.label}>Banda / resistencia</Text><TextInput style={styles.input} value={form.loadLabel} placeholder="Roja, fuerte, banda 25 kg…" onChangeText={(loadLabel) => setForm((old) => old && ({ ...old, loadLabel }))} /></>}
+                  {(context.selected_laterality === 'UNILATERAL' || context.selected_laterality === 'ALTERNATING') && <Pressable style={styles.toggle} onPress={() => setForm((old) => old && ({ ...old, perSide: !old.perSide }))}><Text style={styles.toggleText}>{form.perSide ? '✓' : '○'} Por lado</Text></Pressable>}
+                  <Text style={styles.label}>RIR (opcional, 0–5)</Text><TextInput keyboardType="number-pad" style={styles.input} value={form.rir} onChangeText={(rir) => setForm((old) => old && ({ ...old, rir }))} />
+                  <View style={form.editingId ? styles.editActions : undefined}>
+                    <Pressable disabled={submitting} style={[styles.primaryButton, form.editingId && styles.editPrimaryButton, submitting && styles.disabledButton]} onPress={() => void saveSet()}><Text style={styles.primaryButtonText}>{submitting ? 'Guardando…' : form.editingId ? 'Guardar cambios' : 'Serie terminada'}</Text></Pressable>
+                    {form.editingId ? <Pressable disabled={submitting} style={styles.cancelButton} onPress={() => void prepareNewSet(item)}><Text style={styles.link}>Cancelar</Text></Pressable> : null}
+                  </View>
+                </View> : <Text style={styles.empty}>Preparando siguiente serie…</Text>}
                 <Text style={styles.noteLabel}>Nota del ejercicio</Text>
                 <TextInput style={styles.noteInput} defaultValue={item.note ?? ''} placeholder="Nota opcional…" placeholderTextColor="#94a3b8" onEndEditing={(event) => void saveNote(item, event.nativeEvent.text)} />
               </View>}
@@ -182,20 +189,6 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
         })}
         <Pressable style={styles.finishButton} onPress={() => setFinishOpen(true)}><Text style={styles.finishButtonText}>Finalizar sesión</Text></Pressable>
       </ScrollView>
-
-      <Modal visible={form !== null} animationType="slide" onRequestClose={() => setForm(null)}>
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.modalHeader}><Text style={styles.modalTitle}>{form?.editingId ? 'Editar serie' : 'Nueva serie'}</Text><Pressable onPress={() => setForm(null)}><Text style={styles.link}>Cerrar</Text></Pressable></View>
-          {form && context && <ScrollView contentContainerStyle={styles.form}>
-            <Text style={styles.label}>{DOSE_LABELS[context.dose_unit]}</Text><TextInput keyboardType="decimal-pad" style={styles.input} value={form.dose} onChangeText={(dose) => setForm((old) => old && ({ ...old, dose }))} />
-            {numericLoadLabel(context.load_mode) && <><Text style={styles.label}>{numericLoadLabel(context.load_mode)}</Text><TextInput keyboardType="decimal-pad" style={styles.input} value={form.load} onChangeText={(load) => setForm((old) => old && ({ ...old, load }))} /></>}
-            {context.load_mode === 'BAND_LABEL' && <><Text style={styles.label}>Banda / resistencia</Text><TextInput style={styles.input} value={form.loadLabel} placeholder="Roja, fuerte, banda 25 kg…" onChangeText={(loadLabel) => setForm((old) => old && ({ ...old, loadLabel }))} /></>}
-            {(context.selected_laterality === 'UNILATERAL' || context.selected_laterality === 'ALTERNATING') && <Pressable style={styles.toggle} onPress={() => setForm((old) => old && ({ ...old, perSide: !old.perSide }))}><Text style={styles.toggleText}>{form.perSide ? '✓' : '○'} Por lado</Text></Pressable>}
-            <Text style={styles.label}>RIR (opcional, 0–5)</Text><TextInput keyboardType="number-pad" style={styles.input} value={form.rir} onChangeText={(rir) => setForm((old) => old && ({ ...old, rir }))} />
-            <Pressable disabled={submitting} style={[styles.primaryButton, submitting && styles.disabledButton]} onPress={() => void saveSet()}><Text style={styles.primaryButtonText}>{submitting ? 'Guardando…' : 'Serie terminada'}</Text></Pressable>
-          </ScrollView>}
-        </SafeAreaView>
-      </Modal>
 
       <Modal visible={isRestTimerActive(timer)} animationType="fade" onRequestClose={() => dispatchTimer({ type: 'cancel' })}>
         <SafeAreaView style={styles.restScreen}>
@@ -234,13 +227,13 @@ export function SessionExecutionScreen({ session, items, onAddExercise, onRefres
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8fafc' }, content: { gap: 12, padding: 16, paddingBottom: 48 },
+  content: { gap: 12, padding: 16, paddingBottom: 48 },
   restScreen: { alignItems: 'center', backgroundColor: '#083344', flex: 1, justifyContent: 'center', padding: 24 },
   restTitle: { color: '#cffafe', fontSize: 28, fontWeight: '800' }, restValue: { color: '#fff', fontSize: 88, fontVariant: ['tabular-nums'], fontWeight: '900', marginVertical: 30 },
   restAdjustments: { flexDirection: 'row', gap: 18 }, restAdjustButton: { backgroundColor: '#155e75', borderRadius: 16, paddingHorizontal: 28, paddingVertical: 18 }, restAdjustText: { color: '#fff', fontSize: 20, fontWeight: '800' },
   skipRestButton: { borderColor: '#67e8f9', borderRadius: 12, borderWidth: 1, marginTop: 40, paddingHorizontal: 20, paddingVertical: 14 }, skipRestText: { color: '#cffafe', fontSize: 16, fontWeight: '700' },
-  primaryButton: { alignItems: 'center', backgroundColor: '#0e7490', borderRadius: 12, padding: 14 }, primaryButtonText: { color: '#fff', fontSize: 16, fontWeight: '800' }, exerciseCard: { backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: 16, borderWidth: 1, padding: 14 }, exerciseCardActive: { borderColor: '#0891b2', borderWidth: 2 }, exerciseHeader: { alignItems: 'center', flexDirection: 'row' }, exerciseTitleArea: { flex: 1 }, exerciseTitle: { color: '#0f172a', fontSize: 17, fontWeight: '800' }, configuration: { color: '#475569', marginTop: 3 }, selection: { color: '#0e7490', fontSize: 12, marginTop: 5 }, orderButtons: { flexDirection: 'row', gap: 14, marginLeft: 10 }, arrow: { color: '#0e7490', fontSize: 22, fontWeight: '800' }, disabled: { color: '#cbd5e1' }, exerciseBody: { borderTopColor: '#e2e8f0', borderTopWidth: 1, marginTop: 12, paddingTop: 10 }, setRow: { alignItems: 'center', borderBottomColor: '#f1f5f9', borderBottomWidth: 1, flexDirection: 'row', gap: 12, paddingVertical: 10 }, setText: { flex: 1 }, setTitle: { color: '#0f172a', fontWeight: '700' }, setDetail: { color: '#64748b', fontSize: 13, marginTop: 3 }, link: { color: '#0e7490', fontWeight: '700' }, danger: { color: '#b91c1c', fontWeight: '700' }, empty: { color: '#64748b', paddingVertical: 10 }, addSetButton: { alignItems: 'center', backgroundColor: '#cffafe', borderRadius: 10, marginTop: 10, padding: 12 }, addSetText: { color: '#155e75', fontWeight: '800' }, noteLabel: { color: '#334155', fontWeight: '700', marginTop: 14 }, noteInput: { borderColor: '#cbd5e1', borderRadius: 10, borderWidth: 1, color: '#0f172a', marginTop: 7, padding: 10 },
+  primaryButton: { alignItems: 'center', backgroundColor: '#0e7490', borderRadius: 12, padding: 14 }, primaryButtonText: { color: '#fff', fontSize: 16, fontWeight: '800' }, exerciseCard: { backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: 16, borderWidth: 1, padding: 14 }, exerciseCardActive: { borderColor: '#0891b2', borderWidth: 2 }, exerciseHeader: { alignItems: 'center', flexDirection: 'row' }, exerciseTitleArea: { flex: 1 }, exerciseTitle: { color: '#0f172a', fontSize: 17, fontWeight: '800' }, configuration: { color: '#475569', marginTop: 3 }, selection: { color: '#0e7490', fontSize: 12, marginTop: 5 }, orderButtons: { flexDirection: 'row', gap: 14, marginLeft: 10 }, arrow: { color: '#0e7490', fontSize: 22, fontWeight: '800' }, disabled: { color: '#cbd5e1' }, exerciseBody: { borderTopColor: '#e2e8f0', borderTopWidth: 1, marginTop: 12, paddingTop: 10 }, setRow: { alignItems: 'center', borderBottomColor: '#f1f5f9', borderBottomWidth: 1, flexDirection: 'row', gap: 12, paddingVertical: 10 }, setText: { flex: 1 }, setTitle: { color: '#0f172a', fontWeight: '700' }, setDetail: { color: '#64748b', fontSize: 13, marginTop: 3 }, link: { color: '#0e7490', fontWeight: '700' }, danger: { color: '#b91c1c', fontWeight: '700' }, empty: { color: '#64748b', paddingVertical: 10 }, inlineForm: { backgroundColor: '#f8fafc', borderColor: '#bae6fd', borderRadius: 12, borderWidth: 1, marginTop: 12, padding: 12 }, formTitle: { color: '#0f172a', fontSize: 16, fontWeight: '800' }, editActions: { alignItems: 'center', flexDirection: 'row', gap: 16, marginTop: 12 }, editPrimaryButton: { flex: 1 }, cancelButton: { padding: 12 }, noteLabel: { color: '#334155', fontWeight: '700', marginTop: 14 }, noteInput: { borderColor: '#cbd5e1', borderRadius: 10, borderWidth: 1, color: '#0f172a', marginTop: 7, padding: 10 },
   finishButton: { alignItems: 'center', backgroundColor: '#b91c1c', borderRadius: 12, marginTop: 8, padding: 15 }, finishButtonText: { color: '#fff', fontWeight: '800' },
-  modalHeader: { alignItems: 'center', borderBottomColor: '#e2e8f0', borderBottomWidth: 1, flexDirection: 'row', justifyContent: 'space-between', padding: 18 }, modalTitle: { color: '#0f172a', fontSize: 22, fontWeight: '800' }, form: { padding: 20, paddingBottom: 48 }, label: { color: '#334155', fontWeight: '700', marginBottom: 7, marginTop: 12 }, input: { backgroundColor: '#fff', borderColor: '#cbd5e1', borderRadius: 10, borderWidth: 1, color: '#0f172a', fontSize: 17, padding: 12 }, toggle: { backgroundColor: '#e2e8f0', borderRadius: 10, marginTop: 18, padding: 12 }, toggleText: { color: '#334155', fontWeight: '700' }, disabledButton: { opacity: 0.5 },
+  label: { color: '#334155', fontWeight: '700', marginBottom: 7, marginTop: 12 }, input: { backgroundColor: '#fff', borderColor: '#cbd5e1', borderRadius: 10, borderWidth: 1, color: '#0f172a', fontSize: 17, padding: 12 }, toggle: { backgroundColor: '#e2e8f0', borderRadius: 10, marginTop: 18, padding: 12 }, toggleText: { color: '#334155', fontWeight: '700' }, disabledButton: { opacity: 0.5 },
   confirmBackdrop: { backgroundColor: 'rgba(15, 23, 42, 0.5)', flex: 1, justifyContent: 'center', padding: 22 }, confirmCard: { backgroundColor: '#fff', borderRadius: 18, padding: 20 }, confirmTitle: { color: '#0f172a', fontSize: 22, fontWeight: '800' }, confirmText: { color: '#64748b', lineHeight: 21, marginTop: 7 }, finalNote: { minHeight: 84, textAlignVertical: 'top' }, confirmActions: { alignItems: 'center', flexDirection: 'row', gap: 18, justifyContent: 'flex-end', marginTop: 18 }, finishConfirm: { backgroundColor: '#b91c1c', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12 },
 });
