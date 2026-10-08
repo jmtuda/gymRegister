@@ -237,10 +237,11 @@ sincronizados; volver a comprobar GitHub antes de modificar.
   No repetir esa validación por defecto. Para futuras regresiones, comprobar los
   flujos afectados: arranque offline, captura inline y edición, descanso/keep-awake,
   cierre/reapertura y exportación.
-- La siguiente etapa es reformular TASK-008 para Neon Free. La issue #15 todavía
-  especifica Supabase y no debe ejecutarse tal cual. El cambio de proveedor fue
-  aprobado por el propietario el 8 de octubre de 2026; ver la fase cloud siguiente.
-  No incluye sincronización ni restauración y todavía no está implementada.
+- Actualización del 8 de octubre de 2026: la issue #15 ya se reformuló como
+  TASK-008 — Fundación Neon Free y validación de acceso móvil. El siguiente trabajo
+  es validar Auth/acceso móvil (Puerta A) y aprobar la arquitectura antes de
+  implementar la fundación (Puerta B). El cambio de proveedor fue aprobado por
+  el propietario; no hay integración, sincronización ni restauración implementadas.
 
 ### Riesgos y decisiones pendientes
 
@@ -248,8 +249,8 @@ sincronizados; volver a comprobar GitHub antes de modificar.
   durante entrenamiento muestra cargas numéricas como `kg` genéricos en
   `SessionExecutionScreen.tsx`. Revisar la presentación sin reinterpretar datos.
 - El historial local permite borrado explícito; la propuesta original de la
-  issue #15 no permitía DELETE cloud. Revisar ese contrato al reformular el plan
-  para Neon y definir propagación de eliminaciones antes de sincronizar.
+  issue #15 no permitía DELETE cloud. La especificación Neon deja la propagación
+  de eliminaciones para una tarea posterior, antes de sincronizar o restaurar.
 - Existe exportación, no importación/restauración ni recuperación probada de una
   instalación perdida. No presentar el JSON como backup restaurable implementado.
 - El esquema local usa inicialización v1, sin migraciones incrementales. Cualquier
@@ -282,8 +283,14 @@ por el agente. SQLite seguirá siendo la base operativa durante el entrenamiento
 
 ### TASK-008 — Fundación Neon y validación de acceso móvil
 
-Reformular la issue #15 antes de implementar; no basta con cambiar nombres de
-Supabase por Neon. No instalar SDKs ni crear migraciones según su texto anterior.
+La issue #15 contiene la especificación actualizada para Neon Free y los criterios
+de aceptación. La propuesta original para Supabase queda sustituida. No instalar
+SDKs ni crear migraciones según su texto anterior.
+
+La tarea tiene dos puertas: primero validar arquitectura móvil con evidencia
+reproducible (Puerta A); solo tras su aprobación, implementar configuración,
+servicios, migraciones y permisos (Puerta B). Provisionar recursos concretos
+requiere autorización; actualizar la issue no inicia la implementación.
 
 1. Validar autenticación para una única cuenta en Expo SDK 54/React Native:
    login, persistencia segura de sesión, recuperación tras reinicio, logout y
