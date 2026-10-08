@@ -75,12 +75,20 @@ No incluye:
 
 ## Persistencia
 
-El MVP se desarrollará primero sobre SQLite para que la ejecución de una sesión no dependa de Internet.
+El MVP usa SQLite para que la ejecución de una sesión no dependa de Internet.
 
-Supabase se incorporará posteriormente como capa de autenticación, backup/sincronización y restauración. El modelo local se diseña desde el principio con IDs globales y timestamps para evitar rehacer el dominio cuando se añada la nube.
+La fase cloud usará **Neon en el plan Free**, en lugar de Supabase, para almacenar
+datos en PostgreSQL. SQLite seguirá siendo la base operativa. La autenticación y
+el acceso seguro desde Expo deben validarse antes de implementar la integración;
+no se incluirán credenciales PostgreSQL en la app. El modelo local conserva IDs
+globales y timestamps para facilitar futura sincronización y restauración.
 
 Esta fase posterior no se ha iniciado; no existe autenticación, sincronización ni
 backup cloud en la versión actual.
+
+No se autoriza pasar a un plan de pago ni contratar servicios auxiliares de pago.
+Si los límites gratuitos impiden continuar, detenerse y avisar. El alcance y las
+decisiones de arquitectura pendientes están en el plan de implementación.
 
 ## Documentación
 
@@ -88,6 +96,35 @@ backup cloud en la versión actual.
 - [Catálogo](docs/CATALOG.md)
 - [Modelo de datos](docs/DATA_MODEL.md)
 - [Plan de implementación](docs/IMPLEMENTATION_PLAN.md)
+
+El estado operativo, las verificaciones y los pendientes se mantienen en el plan
+de implementación. Las instrucciones para agentes están en [AGENTS.md](AGENTS.md).
+
+## Desarrollo y verificaciones
+
+El proyecto utiliza npm y `package-lock.json`. Para preparar un entorno de
+desarrollo autorizado, instalar las dependencias bloqueadas con `npm ci`.
+El runner de tests necesita Node con soporte de TypeScript y `node:sqlite`;
+el repositorio todavía no fija una versión de Node.
+
+Para la verificación de mantenimiento se utilizó una instalación con caché local:
+`npm ci --cache ./node_modules/.cache/npm --ignore-scripts --no-audit --no-fund --update-notifier=false`.
+Tests, lint, typecheck y bundles locales funcionaron con esa instalación. Al omitir
+scripts, no se garantiza la preparación de cualquier dependencia nativa futura;
+no se realizó una auditoría de vulnerabilidades ni una actualización de versiones.
+
+Comandos existentes:
+
+- `npm run start`: iniciar Expo;
+- `npm run android` / `npm run ios`: iniciar Expo para la plataforma indicada;
+- `npm run test`: pruebas de dominio, repositorios y lógica de features;
+- `npm run lint`: ESLint, requiere dependencias instaladas;
+- `npm run typecheck`: TypeScript sin emitir archivos, requiere dependencias instaladas;
+- `git diff --check`: comprobar errores de whitespace en el diff.
+
+Los tests usan SQLite en memoria y no sustituyen la validación de UI, persistencia
+tras cerrar el proceso ni capacidades nativas en dispositivo. Exportar CSV/JSON
+no implica que exista importación o restauración.
 
 ## Relación con gymCoach
 

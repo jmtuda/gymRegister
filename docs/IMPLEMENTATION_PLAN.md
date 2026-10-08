@@ -4,7 +4,7 @@
 
 Primero se construye un MVP completamente local.
 
-Supabase se pospone hasta que estén estabilizados:
+La integración cloud con Neon Free se pospone hasta que estén estabilizados:
 
 - catálogo;
 - creación de sesión;
@@ -14,9 +14,9 @@ Supabase se pospone hasta que estén estabilizados:
 
 Esto reduce el riesgo y permite reutilizar las partes útiles de gymCoach sin arrastrar su motor metodológico.
 
-## Stack propuesto
+## Stack implementado
 
-Mantener la base tecnológica conocida de gymCoach salvo motivo técnico claro para cambiarla:
+La aplicación utiliza:
 
 - React Native
 - Expo
@@ -185,25 +185,150 @@ inmutabilidad de sesiones completadas y exportación de solo lectura.
 - precarga editable de los últimos valores semánticamente compatibles;
 - borrado transaccional explícito de sesiones completadas;
 - alta histórica manual construida en memoria y persistida atómicamente;
+- captura inline en la tarjeta del ejercicio activo, con edición en la misma zona
+  y descarte del formulario no guardado al cambiar de ejercicio (PR #18);
 - cobertura de idempotencia, prioridad de defaults, rollback, coexistencia con una
   sesión activa y exportación posterior.
 
-## Fase posterior — Supabase (no iniciada)
+## Estado operativo de referencia — 7 de octubre de 2026
 
-No iniciar hasta aprobar el MVP local.
+Base inspeccionada: `main` en `65aea9e` (PR #18). En esta revisión, HEAD local,
+`origin/main` y `main` consultada directamente en GitHub coinciden. Este apartado
+es una referencia fechada, no una garantía de que futuros checkouts sigan
+sincronizados; volver a comprobar GitHub antes de modificar.
 
-Alcance previsto:
+### Verificaciones y límites
 
-- Supabase Auth para una única cuenta;
-- tablas cloud equivalentes;
-- RLS;
-- sincronización de sesiones completadas;
-- cola de pendientes;
-- upsert idempotente;
-- restauración en nueva instalación;
-- estrategia explícita para datos custom del catálogo.
+- `npm run test`: 78 tests aprobados, sin fallos, con Node `v26.7.0` y npm `11.19.0`.
+- `git diff --check`: sin errores tras los cambios documentales.
+- Tras la inspección de solo lectura, se autorizó preparar el entorno y se ejecutó
+  `npm ci --cache ./node_modules/.cache/npm --ignore-scripts --no-audit --no-fund --update-notifier=false`.
+  Se instalaron 901 paquetes sin cambiar `package.json` ni `package-lock.json`.
+  La caché permanece dentro del proyecto; no se ejecutaron scripts de instalación
+  ni una auditoría de vulnerabilidades. Esta instalación se verificó para los
+  comandos siguientes, no para cualquier uso futuro de dependencias nativas.
+- `npm run lint` y `npm run typecheck`: correctos después de la instalación.
+- Bundles locales Android/iOS: correctos mediante el CLI instalado de Expo,
+  `export --platform android --platform ios --max-workers 2 --output-dir dist/verification`.
+  Se ejecutó offline, sin telemetría ni carga de `.env`, con HOME, temporales y
+  cachés redirigidos al proyecto. Los bundles Hermes y `metadata.json` están en
+  `dist/verification`, excluido de Git. No son un APK/IPA ni una build nativa.
+- La PR #18 declara también Expo Doctor correcto; no se reprodujo Expo Doctor
+  en esta revisión.
+- Las pruebas cubren SQLite en memoria, reconstrucción de repositorios, rollback,
+  idempotencia, semántica histórica, exportación y lógica de captura/descanso.
+  Parte de la cobertura de UI comprueba texto fuente, no interacción real.
+- El propietario confirma en esta revisión que el APK ya fue generado y probado
+  con éxito en un Android físico. Es validación comunicada por el propietario,
+  no una prueba ejecutada por el agente. No se ha registrado aquí el identificador
+  de build/commit ni el detalle de los flujos probados.
+- No se ha comunicado una prueba en dispositivo iOS. No hay workflows de CI
+  versionados.
 
-SQLite seguirá siendo la base operativa durante el entrenamiento.
+### Seguimiento y siguiente paso
+
+- No hay PR abiertas ni se identificó una funcionalidad parcialmente integrada
+  en la base inspeccionada.
+- Las issues #9 (TASK-005) y #11 (TASK-006) siguen abiertas pese a tener
+  implementación y pruebas en `main`. Reconciliar su seguimiento con aprobación;
+  no tratarlas automáticamente como trabajo funcional pendiente.
+- El entorno permite ejecutar tests, lint, typecheck y bundles locales, y el
+  propietario confirma la prueba satisfactoria del APK en Android físico.
+  No repetir esa validación por defecto. Para futuras regresiones, comprobar los
+  flujos afectados: arranque offline, captura inline y edición, descanso/keep-awake,
+  cierre/reapertura y exportación.
+- La siguiente etapa es reformular TASK-008 para Neon Free. La issue #15 todavía
+  especifica Supabase y no debe ejecutarse tal cual. El cambio de proveedor fue
+  aprobado por el propietario el 8 de octubre de 2026; ver la fase cloud siguiente.
+  No incluye sincronización ni restauración y todavía no está implementada.
+
+### Riesgos y decisiones pendientes
+
+- La UI de entrada distingue los modos de carga, pero el resumen de series
+  durante entrenamiento muestra cargas numéricas como `kg` genéricos en
+  `SessionExecutionScreen.tsx`. Revisar la presentación sin reinterpretar datos.
+- El historial local permite borrado explícito; la propuesta original de la
+  issue #15 no permitía DELETE cloud. Revisar ese contrato al reformular el plan
+  para Neon y definir propagación de eliminaciones antes de sincronizar.
+- Existe exportación, no importación/restauración ni recuperación probada de una
+  instalación perdida. No presentar el JSON como backup restaurable implementado.
+- El esquema local usa inicialización v1, sin migraciones incrementales. Cualquier
+  cambio de esquema futuro debe preservar datos de instalaciones existentes.
+- No hay versión de Node fijada. Acordar un entorno reproducible antes de añadir
+  CI; el runner actual depende de TypeScript nativo y `node:sqlite`.
+- npm informó de dependencias obsoletas durante la instalación y Node emitió
+  `MODULE_TYPELESS_PACKAGE_JSON` durante los tests. No se actualizaron versiones
+  ni se cambió el tipo de módulo para silenciar avisos; revisar compatibilidad y
+  seguridad en una tarea separada, sin confundir estos avisos con una auditoría.
+
+## Fase posterior — Neon Free (planificada, no implementada)
+
+Decisión del propietario, 8 de octubre de 2026: usar Neon en el plan Free en lugar
+de Supabase. No hay cuenta/proyecto cloud provisionado ni integración implementada
+por el agente. SQLite seguirá siendo la base operativa durante el entrenamiento.
+
+### Presupuesto y viabilidad
+
+- Usar exclusivamente el plan Free. No cambiar de plan, introducir facturación
+  ni contratar servicios auxiliares de pago. Si una solución exige coste adicional,
+  detenerse y comunicar el bloqueo antes de actuar.
+- Verificar las cuotas vigentes de compute, almacenamiento y transferencia antes
+  de provisionar; comprobar que la organización elegida realmente está en Free.
+  La documentación oficial indica suspensión de compute o bloqueo de escrituras
+  al alcanzar determinadas cuotas gratuitas: la app debe conservar el uso local
+  y mostrar un fallo cloud controlado, sin pérdida de datos ni upgrade automático.
+- No tratar la retención del proveedor como backup/restauración de la app
+  implementados. Diseñar y probar la recuperación como una tarea posterior.
+
+### TASK-008 — Fundación Neon y validación de acceso móvil
+
+Reformular la issue #15 antes de implementar; no basta con cambiar nombres de
+Supabase por Neon. No instalar SDKs ni crear migraciones según su texto anterior.
+
+1. Validar autenticación para una única cuenta en Expo SDK 54/React Native:
+   login, persistencia segura de sesión, recuperación tras reinicio, logout y
+   expiración/renovación. Neon Managed Better Auth y Data API son candidatos, no
+   una elección cerrada: el roadmap consultado no enumera Expo/React Native como
+   framework soportado. Una guía React/Vite no demuestra compatibilidad móvil.
+   Documentar el resultado; si requiere otra arquitectura o servicios adicionales,
+   aprobarlos antes de avanzar y mantener el coste cero.
+2. Elegir acceso seguro mediante API autenticada, nunca una conexión PostgreSQL
+   con credenciales dentro del APK. Si se elige Neon Data API, validar JWT,
+   GRANT de privilegios mínimos y RLS por `auth.user_id()`; no copiar `auth.uid()`
+   ni FK a `auth.users` de Supabase. No exponer tablas antes de probar las policies.
+3. Crear configuración opcional y servicios aislados de UI, sin login obligatorio.
+   Sin configuración o sin red, Entrenar, Historial, Ejercicios y exportación
+   deben seguir funcionando. No iniciar sincronización automática al arrancar.
+4. Definir migraciones PostgreSQL reproducibles para catálogo CUSTOM e historial
+   `completed`, con IDs locales intactos, snapshots, semántica de series,
+   constraints, ownership coherente de padres/hijos y permisos mínimos. Catálogo
+   SYSTEM permanece local; permitir configuraciones CUSTOM sobre ejercicios SYSTEM.
+5. Cubrir ausencia de configuración, sesión Auth y seguridad; probar que un usuario
+   no puede leer/escribir datos ajenos, que ownership hijo/padre no puede mezclarse
+   y que anónimos no acceden a datos privados. Reportar pruebas SQL bloqueadas como
+   bloqueadas, no como aprobadas. Mantener tests, lint, tipos y bundles locales.
+
+Esta tarea no implementa subida de sesiones, cola, sincronización de catálogo,
+resolución de conflictos ni restauración. Sus criterios detallados y SDKs se
+cerrarán tras la validación de arquitectura móvil, no por suposición.
+
+### Tareas posteriores
+
+- Sincronización idempotente de sesiones completadas y catálogo CUSTOM.
+- Cola de pendientes y reintentos controlados compatibles con las cuotas Free.
+- Estrategia de borrados/tombstones que impida resucitar historial eliminado.
+- Restauración comprobada en una instalación nueva.
+
+### Referencias oficiales consultadas — 8 de octubre de 2026
+
+- [Planes y cuotas](https://neon.com/pricing).
+- [Managed Better Auth](https://neon.com/docs/auth/overview).
+- [Roadmap de Auth y frameworks](https://neon.com/docs/auth/roadmap).
+- [Neon Data API](https://neon.com/docs/data-api/overview).
+- [Privilegios, identidad JWT y RLS](https://neon.com/docs/data-api/access-control).
+
+Revisar estas fuentes antes de implementar: precios, cuotas, SDKs y soporte de
+frameworks pueden cambiar. No se crea infraestructura cloud en esta tarea documental.
 
 ## Orden de reutilización desde gymCoach
 
@@ -241,4 +366,8 @@ Antes de crear un documento nuevo, ampliar uno de estos cuatro cuando sea posibl
 - DATA_MODEL
 - IMPLEMENTATION_PLAN
 
-El objetivo es mantener la documentación pequeña, vigente y ejecutable por Codex.
+El objetivo es mantener la documentación pequeña, vigente y ejecutable por agentes
+como Hermes o Codex. `AGENTS.md` contiene instrucciones de trabajo, no un segundo
+plan de producto. El estado se mantiene en este documento, sin duplicarlo en
+`docs/PROJECT_STATUS.md`. Actualizar la fecha, commit de referencia, verificaciones
+y pendientes al realizar una nueva revisión de estado o integrar una tarea.
