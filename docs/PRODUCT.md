@@ -91,6 +91,12 @@ Al pulsar **Iniciar**, el estado pasa a `in_progress`.
 
 Cada ejercicio muestra sus series realizadas.
 
+La tarjeta del ejercicio activo contiene un formulario inline permanente para
+la siguiente serie. **Serie terminada** confirma los datos; editar una serie
+utiliza la misma zona con **Guardar cambios** y **Cancelar**, sin iniciar otro
+descanso. Cambiar de ejercicio descarta los valores del formulario sin guardar,
+pero conserva todas las series ya confirmadas.
+
 El usuario puede:
 
 - añadir una serie;
@@ -191,7 +197,7 @@ Permite explorar el catálogo con el mismo flujo:
 
 **grupo → ejercicio → configuraciones**.
 
-Además permitirá:
+Además permite:
 
 - crear un nuevo ejercicio personalizado;
 - añadir una nueva configuración a un ejercicio existente;
@@ -225,4 +231,4 @@ Reglas:
 - progresión automática;
 - gráficas avanzadas;
 - IA;
-- Supabase.
+- cloud (Neon Free, autenticación, sincronización y restauración).

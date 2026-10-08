@@ -11,7 +11,7 @@ El modelo debe:
 - conservar hechos realizados;
 - soportar funcionamiento offline;
 - usar IDs globales desde el primer día;
-- permitir añadir Supabase después sin rediseñar el dominio.
+- permitir añadir PostgreSQL en Neon después sin rediseñar el dominio local.
 
 Se recomienda UUID para entidades creadas por el usuario.
 
@@ -105,7 +105,9 @@ Campos:
 - `created_at TEXT NOT NULL`
 - `updated_at TEXT NOT NULL`
 
-Además de las referencias al catálogo, la implementación debe valorar guardar un pequeño snapshot textual de nombre/configuración para que el historial siga siendo legible si un elemento se renombra posteriormente.
+Además de las referencias al catálogo, se guardan `exercise_name_snapshot` y
+`configuration_name_snapshot` para que el historial conserve los nombres aunque
+un elemento se renombre posteriormente.
 
 ### performed_sets
 
@@ -144,11 +146,17 @@ Los campos vacíos de UI no se convierten en datos históricos.
 
 ## Edición durante la sesión
 
-Mientras la sesión está `draft` o `in_progress`:
+Las capacidades del flujo normal dependen del estado:
 
-- se pueden añadir/eliminar/reordenar ejercicios;
-- se pueden añadir/editar/eliminar series;
-- se pueden editar notas.
+| Operación | `draft` | `in_progress` |
+|---|---|---|
+| Añadir y reordenar ejercicios | Sí | Sí |
+| Eliminar ejercicios | Sí | No |
+| Confirmar, editar y eliminar series | No | Sí |
+| Editar nota de sesión | Sí | Al finalizar, como nota final |
+| Editar nota del ejercicio | No | Sí |
+
+Estas restricciones se aplican en los repositorios, no solo en la interfaz.
 
 Al completar la sesión se considera cerrada para el flujo normal.
 
@@ -221,9 +229,10 @@ El JSON conserva también sesiones y ejercicios sin series. Será el formato de
 mayor fidelidad para una futura tarea de backup/restauración; TASK-006 no incluye
 importación.
 
-## Preparación para Supabase
+## Preparación para Neon Free
 
-Supabase queda fuera del MVP local, pero desde el primer día:
+La fase cloud prevista usa PostgreSQL en Neon Free. Queda fuera del MVP local,
+pero desde el primer día:
 
 - todos los IDs de datos del usuario serán globales;
 - todas las entidades mutables tendrán `created_at` y `updated_at`;
@@ -232,3 +241,21 @@ Supabase queda fuera del MVP local, pero desde el primer día:
 - el catálogo del sistema tendrá IDs estables.
 
 Así podrá añadirse más adelante una capa de sincronización sin cambiar el modelo funcional.
+
+El esquema cloud se diseñará mediante migraciones reproducibles, conservando los
+IDs y timestamps locales. El catálogo SYSTEM permanece empaquetado; el catálogo
+CUSTOM y las sesiones `completed` necesitarán representación para restauración
+futura. La identidad cloud y su tipo se decidirán tras validar la autenticación;
+no se presupone la existencia de `auth.users.id` ni una identidad UUID del proveedor.
+
+El cliente móvil no incluirá credenciales de PostgreSQL, `DATABASE_URL` ni un rol
+propietario de la base de datos. El acceso debe usar una API autenticada con
+permisos mínimos y protección por propietario. Si se elige Neon Data API, su
+modelo documentado usa GRANT y RLS con `auth.user_id()` para el `sub` del JWT;
+no es la función `auth.uid()` de Supabase. Validar ownership de padres e hijos,
+denegación de acceso anónimo y aislamiento entre usuarios con pruebas reales
+antes de exponer datos.
+
+La sincronización, restauración y propagación de borrados no existen todavía.
+Su diseño debe respetar el borrado explícito local y no resucitar sesiones
+eliminadas al restaurar. El acceso cloud no puede bloquear el flujo offline.
