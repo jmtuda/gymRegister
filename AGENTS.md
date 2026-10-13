@@ -7,12 +7,19 @@
 - Revisar `git status`, rama, historial reciente y diferencias respecto a `origin/main`. Consultar `git ls-remote origin refs/heads/main` para verificar el remoto sin alterar el checkout. Si hay divergencia o cambios ajenos, informar y no sobrescribirlos.
 - Leer la issue y sus comentarios cuando la tarea esté asociada a GitHub. Contrastar documentación con código y tests; una issue abierta no prueba que su funcionalidad siga pendiente.
 - El estado operativo y los pendientes se mantienen en `docs/IMPLEMENTATION_PLAN.md`. No duplicarlos en otro documento de estado.
+- Distinguir siempre la base local aceptada en Android de la investigación cloud.
+  Consultar el hito y sus límites en el plan; no presentar resultados de probes
+  HTTP/SQL como integración móvil ni modificar la base estable sin un encargo nuevo.
 
 ## Alcance y seguridad
 
 - gymRegister registra entrenamiento de fuerza manual para un único usuario. No añadir prescripciones, recomendaciones, progresión automática, IA ni funcionalidades de gymCoach fuera del alcance aprobado.
 - Operar únicamente dentro del directorio autorizado del proyecto. Pedir aprobación antes de operaciones en el Mac fuera de ese directorio, incluidas instalaciones globales y cambios de configuración del usuario.
 - No contratar servicios ni iniciar operaciones que impliquen un coste adicional sin aprobación expresa. Detenerse y avisar si la continuación lo requiere.
+- Antes de navegar en un explorador, preguntar si el propietario prefiere hacerlo
+  manualmente. Usar primero skills instaladas y conexiones CLI/MCP autenticadas
+  de sólo lectura cuando la tarea sea una consulta; no instalar ni ampliar permisos
+  para evitar esta puerta. La limpieza de recursos requiere autorización específica.
 - No leer ni imprimir secretos. No versionar credenciales; nunca incluir claves de servidor/service-role en una aplicación cliente.
 - No instalar dependencias ni generar builds remotas durante una inspección de solo lectura. Para preparar el entorno, acordar la instalación y sus rutas de caché; usar el lockfile existente y no actualizar versiones incidentalmente.
 - Trabajar en una rama de tarea basada en `main` verificada, no implementar directamente sobre `main`. No hacer commit, push, abrir/cerrar issues o PR, ni fusionar cambios sin autorización.

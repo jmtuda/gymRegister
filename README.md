@@ -2,6 +2,25 @@
 
 Aplicación personal y local-first para registrar sesiones de entrenamiento de fuerza de forma manual.
 
+## Base estable validada en Android
+
+El propietario confirma el 13 de octubre de 2026 que generó un APK del MVP local
+con SQLite, sin integración Neon, y que sus cambios funcionaron correctamente en
+un Android físico. Esta es la base que se consolida, no una versión cloud.
+
+- Código de referencia: PR #18, commit `65aea9e768a1ef48468e0eae93fb6df0d938064b`.
+- La base `main` `9ef64e1c6ac029a6e4b4ee230b6c5f558b7663fc` conserva exactamente
+  los mismos archivos no Markdown; los cambios posteriores son documentales.
+- Hito Git de consolidación: `mvp-local-android-20261013`, con ese mismo código y
+  documentación reconciliada. La versión configurada de la app sigue en `0.1.0`.
+- La prueba física es evidencia comunicada por el propietario. No se dispone del
+  binario, ID de build ni checksum para acreditar la procedencia exacta del APK;
+  no se ha generado ni instalado otro APK durante esta consolidación.
+
+El estado operativo y el trabajo futuro están en
+[Plan de implementación](docs/IMPLEMENTATION_PLAN.md). Las pruebas exploratorias
+de Neon se conservan como investigación separada y no cambian esta app local.
+
 ## Objetivo
 
 gymRegister no genera entrenamientos ni recomienda ejercicios. Su función es permitir:
@@ -83,8 +102,10 @@ el acceso seguro desde Expo deben validarse antes de implementar la integración
 no se incluirán credenciales PostgreSQL en la app. El modelo local conserva IDs
 globales y timestamps para facilitar futura sincronización y restauración.
 
-Esta fase posterior no se ha iniciado; no existe autenticación, sincronización ni
-backup cloud en la versión actual.
+La investigación de esa fase sí ha empezado en recursos aislados de Neon, pero
+su integración en la app no existe: esta versión no tiene autenticación cloud,
+sincronización ni backup/restauración cloud. El APK local validado no demuestra
+compatibilidad de Neon Auth con Android ni cierra TASK-008.
 
 No se autoriza pasar a un plan de pago ni contratar servicios auxiliares de pago.
 Si los límites gratuitos impiden continuar, detenerse y avisar. El alcance y las
