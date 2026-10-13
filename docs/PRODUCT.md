@@ -8,7 +8,7 @@ La aplicación no prescribe, no recomienda y no adapta el entrenamiento.
 
 ## Navegación principal
 
-El MVP tendrá tres áreas principales:
+El MVP local implementado tiene tres áreas principales:
 
 1. **Entrenar**
 2. **Historial**

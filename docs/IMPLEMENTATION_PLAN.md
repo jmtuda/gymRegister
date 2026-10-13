@@ -1,5 +1,50 @@
 # Plan de implementación
 
+## Base consolidada vigente — 13 de octubre de 2026
+
+**Producto entregado: MVP local con SQLite, probado satisfactoriamente en un
+Android físico por el propietario.** El propietario confirma expresamente que el
+APK probado no incluía integración Neon. TASK-001–TASK-007 y los ajustes móviles
+de la PR #18 forman la base local; no hay un cambio funcional nuevo en este hito.
+
+Referencia de código: `65aea9e768a1ef48468e0eae93fb6df0d938064b` (PR #18).
+La `main` verificada antes de consolidar estaba en
+`9ef64e1c6ac029a6e4b4ee230b6c5f558b7663fc`; Git confirmó que todos los archivos
+no Markdown eran idénticos, incluidos fuentes, datos, assets, manifiestos y
+lockfile. El hito `mvp-local-android-20261013` conserva ese código y unifica la
+documentación; no reinterpreta el catálogo ni cambia el esquema SQLite.
+
+La aceptación Android es confirmación del propietario, no una prueba ejecutada
+por esta sesión. No se ha aportado el APK, ID de build ni checksum: la igualdad
+de fuentes no acredita identidad binaria ni una build reproducible. No se
+repite la prueba física ni se genera un APK para sustituir el que ya funciona.
+
+Las 78 pruebas, lint, tipos y bundles que aparecen abajo son resultados históricos
+fechados. En esta consolidación sólo se verifican diff, preservación de código,
+coherencia documental y referencias Git/GitHub; no se ejecutan suites ni builds
+ni se declara CI verde: no hay workflow versionado en este proyecto.
+
+### Qué queda y qué no bloquea esta base
+
+- El MVP local está terminado y aceptado por el propietario. Las issues #9 y #11
+  describen historial/exportación ya implementados; su estado abierto es
+  seguimiento pendiente de reconciliar, no funcionalidad ausente. No se cierran
+  como efecto incidental de esta consolidación.
+- La investigación TASK-008 / #15 queda fuera del APK validado y sigue parcial.
+  Primero decidir el cierre de la rama de pruebas que todavía existe y validar
+  acceso, sesión durable, renovación/logout y foreground/background en Android;
+  aprobar la arquitectura antes de implementar integración o sincronización.
+- No hay importación/restauración ni backup cloud del inventario de entrenamientos.
+  Exportar CSV/JSON no acredita recuperar una instalación perdida.
+- Mantener las limitaciones de presentación, migraciones incrementales, iOS y
+  entorno reproducible como mantenimiento futuro, sin modificar esta versión.
+- No borrar recursos, subir entrenamientos, provisionar, instalar SDKs o activar
+  servicios sólo porque estén descritos en este plan.
+
+Los apartados siguientes conservan el historial y requisitos del proyecto.
+Las conclusiones de los ensayos del 8 de octubre deben leerse junto con la
+actualización del 13 de octubre; no son una instantánea actual del servicio.
+
 ## Estrategia
 
 Primero se construye un MVP completamente local.
@@ -262,11 +307,12 @@ sincronizados; volver a comprobar GitHub antes de modificar.
   ni se cambió el tipo de módulo para silenciar avisos; revisar compatibilidad y
   seguridad en una tarea separada, sin confundir estos avisos con una auditoría.
 
-## Fase posterior — Neon Free (planificada, no implementada)
+## Fase posterior — Neon Free (investigación parcial; app no integrada)
 
 Decisión del propietario, 8 de octubre de 2026: usar Neon en el plan Free en lugar
-de Supabase. No hay cuenta/proyecto cloud provisionado ni integración implementada
-por el agente. SQLite seguirá siendo la base operativa durante el entrenamiento.
+de Supabase. El proyecto Neon se creó posteriormente con autorización expresa
+(ver registro de provisión abajo); aún no hay integración implementada en la app.
+SQLite seguirá siendo la base operativa durante el entrenamiento.
 
 ### Presupuesto y viabilidad
 
@@ -319,6 +365,235 @@ Esta tarea no implementa subida de sesiones, cola, sincronización de catálogo,
 resolución de conflictos ni restauración. Sus criterios detallados y SDKs se
 cerrarán tras la validación de arquitectura móvil, no por suposición.
 
+### Puerta A — investigación del 8 de octubre de 2026 (parcial)
+
+Base verificada: `main` / `origin/main` / GitHub en `9ef64e1`; árbol limpio antes
+de abrir `task/008-neon-foundation`. Leídos README, los cuatro documentos, la
+issue #15 y sus comentarios, manifiesto, layout SQLite y prueba de flujo local.
+No se instalaron SDKs, no se modificó la app ni se provisionaron recursos.
+
+Resultado documental, no prueba móvil end-to-end:
+
+- Neon Managed Better Auth enumera Next.js y frameworks React web; no enumera
+  Expo/React Native. Su roadmap describe sesiones con cookies HTTP-only y limita
+  arquitecturas frontend/backend separadas. No demuestra imposibilidad móvil,
+  pero tampoco justifica integrar el SDK web como si el soporte estuviera probado.
+- Neon gestiona un subconjunto de plugins Better Auth. No basta con que Better
+  Auth tenga una integración Expo para asumir que el servicio gestionado admite
+  sus requisitos de servidor.
+- Data API documenta proveedores JWT externos, incluido Clerk, validación por
+  JWKS y audiencia configurable. El control real es GRANT + RLS: al habilitar
+  la API desde Console puede aplicar privilegios amplios por defecto en `public`.
+  Revisarlos y restringirlos antes de exponer tablas; no copiar los GRANT de
+  ejemplo que permiten UPDATE/DELETE indiscriminadamente.
+- Clerk documenta SDK Expo y caché de tokens con `expo-secure-store`; su plan
+  Hobby es gratuito sin tarjeta. Esto hace que Clerk + Data API sea un candidato
+  para una prueba aislada, no una arquitectura aprobada ni una integración probada.
+  La allowlist de Clerk requiere pago en producción: no basar la cuenta única
+  en esa función. Verificar acceso por invitación sin signup público y coste cero,
+  requisitos de producción/dominio y versiones antes de instalar. Clerk publica
+  una guía de compatibilidad Expo 54/55, pero falta probar las versiones exactas
+  contra este proyecto. Si cualquiera exige pago, detenerse.
+
+La propuesta inicial de evaluar Clerk queda retirada como siguiente paso por
+aclaración del propietario: aplicación personal, sin flujo de cuentas ni login
+para entrenar; objetivo de almacenamiento cloud privado con configuración mínima.
+Priorizar prueba de Neon Auth + Data API, conservando SQLite. Clerk no está
+aprobado ni instalado. Configurar acceso cloud una vez es un objetivo, no una
+garantía de sesión permanente: hay que probar renovación y reautorización.
+Nunca resolverlo con tablas públicas o credenciales PostgreSQL dentro del APK.
+La issue #15 conserva sus criterios originales hasta reconciliarlos con este
+alcance y con la arquitectura validada; no se ha modificado en GitHub.
+
+Para superar Puerta A faltan recursos de prueba autorizados y ejecución real:
+login de la cuenta personal, persistencia tras reinicio, logout, expiración,
+foreground/background, consulta de tabla desechable, rechazo de anónimo/token
+inválido y aislamiento de una segunda identidad de prueba. No usar entrenamientos
+reales ni subir SQLite. La prueba debe ejecutarse en Android; los tests locales
+no acreditan Auth/JWT/RLS. Puerta B y cierre de #15 permanecen bloqueados.
+
+Fuentes oficiales consultadas:
+
+- Roadmap, overview y plugins de Neon Auth, Data API overview/access-control y
+  [proveedores JWT externos](https://neon.com/docs/data-api/custom-authentication-providers).
+- [Clerk Expo quickstart](https://clerk.com/docs/expo/getting-started/quickstart),
+  [guía Expo](https://docs.expo.dev/guides/using-clerk/),
+  [Clerk Hobby](https://clerk.com/pricing) y
+  [restricciones de acceso](https://clerk.com/docs/guides/secure/restricting-access) y
+  [compatibilidad Expo 54/55](https://clerk.com/articles/clerk-compatibility-in-expo-54-and-55).
+
+Verificación local de esta revisión: Node `v26.7.0`, npm `11.19.0`; 78 tests
+aprobados, lint, typecheck y `git diff --check` correctos. Solo se modifica este
+documento; no se regeneran bundles porque no cambia código ni integración nativa.
+No se ha realizado commit, push ni cambio de estado de la issue.
+
+### Puerta A — pruebas aisladas de Neon, 8 de octubre de 2026
+
+El propietario autoriza realizar las pruebas necesarias. Sin recursos cloud
+accesibles aún, se ejecutó una comprobación de helpers oficiales de Neon, no
+una integración simulada. Fuente fijada al commit
+`029a3367ee140d2c8987601b0e338000fe6db1e6` de `neondatabase/neon-js`.
+Se descargan cinco archivos públicos, se calculan sus hashes y se transpilan
+en memoria con TypeScript ya instalado; no se instalan dependencias.
+
+Comando reproducible del experimento local:
+`node node_modules/.cache/neon-probe/check.cjs`.
+El script queda en caché ignorada, no es código productivo ni artefacto versionado.
+Antes de reutilizarlo tras borrar la caché, recuperar o reconstruir el experimento;
+este comando no es una nueva verificación permanente del repositorio.
+
+Siete comprobaciones aprobadas: detección de navegador sin DOM en Node y con
+`window` vacío, caché de sesión en memoria, ausencia de recuperación en una nueva
+instancia, expiración, invalidación ante respuesta tardía y vaciado explícito.
+La expiración usa reloj controlado y un payload JWT sintético local; no se firma,
+valida ni envía a ningún servicio. No acredita seguridad JWT, login, renovación,
+persistencia móvil ni compatibilidad del SDK completo. La caché probada no es
+almacenamiento durable; hace falta verificar el mecanismo de sesión real tras
+cierre/reinicio de Android, no concluir que todo el SDK carezca de persistencia.
+
+También se inspeccionaron los adaptadores: el SDK gestiona plugins predeterminados
+y obtiene JWT de la sesión; no hay una integración Expo demostrada por este
+experimento. Mantener la ruta Neon como candidata, sin declarar compatibilidad
+ni incompatibilidad definitivas.
+
+Prueba de acceso real: la consola redirige al login Google y no hay sesión
+autenticada en el navegador del agente. No se introdujeron credenciales ni se
+creó un proyecto. Hace falta que el propietario complete Google SSO en ese
+navegador. Después comprobar organización Free y acordar el recurso desechable
+antes de habilitar Auth/Data API o escribir una tabla de prueba sin datos reales.
+Login móvil, persistencia tras reinicio, renovación, revocación y controles
+Data API/RLS están bloqueados por este acceso y por la prueba Android pendiente.
+
+Regresión local ejecutada nuevamente: 78 tests aprobados, lint y typecheck
+correctos. No cambios funcionales, lockfile intacto ni recursos externos creados.
+Puerta A sigue parcial; Puerta B, sincronización y restauración no se implementan.
+
+Fuentes de código:
+[SDK Neon](https://github.com/neondatabase/neon-js/tree/029a3367ee140d2c8987601b0e338000fe6db1e6/packages/auth/src)
+y [contrato de adaptadores](https://github.com/neondatabase/neon-js/blob/029a3367ee140d2c8987601b0e338000fe6db1e6/packages/auth/neon-auth_vs_better-auth.md).
+
+### Provisión autorizada — 8 de octubre de 2026
+
+Tras completar Google SSO, el propietario confirma que no existe un proyecto
+gymRegister y autoriza crearlo en su cuenta. Se verifica en Billing que la
+organización `org-nameless-cherry-58140449` está en Free, 0 USD/mes.
+
+Proyecto creado y comprobado leyendo su overview después de la creación:
+
+- Cuenta: JMTuda.
+- Nombre: `gymregister`.
+- ID: `frosty-cloud-12696824`.
+- Región: AWS Europe Central 1 (Frankfurt), seleccionada explícitamente.
+- Base solicitada: `gymregister`, PostgreSQL 18, según formulario de creación.
+- Rama inicial verificada: `production`, ID `br-spring-snow-b2fte0gh`.
+- Overview: Free plan; 1 base y 1 compute. Better Auth aún muestra Get started.
+
+Se crea únicamente PostgreSQL, sin activar Object Storage, Functions, AI Gateway
+ni Auth. No se cambia plan/facturación, no se muestran/copían credenciales ni se
+tocan los proyectos de otras aplicaciones. No hay tablas de entrenamiento,
+subida de datos, integración móvil ni sincronización implementadas por esta acción.
+La creación no supera Puerta A: quedan las pruebas de acceso seguro y Android.
+
+Este registro sustituye el bloqueo anterior de acceso a consola: la sesión de
+administración está disponible en Google Chrome del propietario, no en el
+navegador aislado del agente. La documentación queda local, sin commit/push.
+
+### Puerta A — pruebas reales de almacenamiento y Data API, 8 de octubre de 2026
+
+Base de código y remoto comprobada: `9ef64e1`. Ejecución propia en Neon Free,
+solo con datos sintéticos y ramas desechables del proyecto anterior; sin cambiar
+la app, SQLite, dependencias o lockfile.
+
+- Rama `auth-probe-20261008` (`br-long-cloud-b2m95brv`), creada con
+  `schema-only`: escritura y lectura reales en
+  `gymregister_probe.storage_check`; RLS habilitada y verificada en PostgreSQL.
+- Ocho comprobaciones reales de permisos/RLS aprobadas con un rol `NOLOGIN`,
+  `NOBYPASSRLS`, no propietario: lectura propia, ocultación de fila ajena,
+  inserción propia, rechazo de inserción ajena, rechazo de UPDATE y DELETE, y
+  rechazo de lectura e inserción sin identidad. La identidad se simuló mediante
+  una variable de sesión SQL; esto no valida JWT ni Neon Auth.
+- El test transaccional hizo rollback de rol, política y filas temporales. Una
+  lectura independiente confirmó una fila original, ningún rol de prueba ni
+  política temporal restante. Se conserva RLS habilitada sin políticas de
+  acceso cliente en esta tabla de prueba.
+- El primer POST de Data API devolvió HTTP 400 porque no permite ramas con
+  borrado automático. Se quitó temporalmente la caducidad; después devolvió
+  HTTP 412, `database CREATE permission is required for neon_superuser`.
+  Omitir la inicialización del esquema Auth produjo el mismo error. La
+  comprobación SQL de privilegio efectivo CREATE devolvió verdadero y la ACL
+  incluía CREATE para ese rol: la causa exacta de esta discrepancia no está
+  confirmada. No se alteraron privilegios para intentar eludirla.
+- Comparación controlada: rama `api-probe-data-20261008`
+  (`br-small-haze-b2q0c3ss`), creada desde `production` con `parent-data`,
+  sin caducidad automática y compute de 0,25 CU. Data API se creó con HTTP 201;
+  GET independiente confirmó HTTP 200 y estado `active`. Se deshabilitaron
+  grants automáticos y OpenAPI, se limitó a diez filas y al esquema `public`;
+  no se habilitó Neon Auth ni se emitieron tokens válidos.
+- En esa segunda rama se creó una tabla sintética con RLS basada en
+  `auth.user_id()`, restringida a una identidad ficticia concreta, sin acceso
+  PUBLIC y con SELECT/INSERT para `authenticated`. Ocho peticiones HTTP reales
+  (GET y POST sin token, con token malformado, JWT sin firma y JWT con clave
+  ficticia) fueron rechazadas con HTTP 400. Los errores fueron respectivamente
+  credenciales ausentes, codificación inválida, `missing key id` y
+  `jwk not found`. No demuestran validación de una firma frente a una clave
+  registrada ni acceso de un usuario legítimo: no había un emisor configurado.
+  Una lectura posterior por propietario confirmó solo la fila original,
+  sin inserciones de las peticiones rechazadas.
+- Limpieza verificada: se eliminó únicamente la rama comparativa, incluyendo
+  su API y tabla; GET posterior devolvió 404. Se restauró y leyó de nuevo la
+  caducidad original de la rama `auth-probe-20261008`:
+  `2026-10-09T08:35:52Z` (9 de octubre, 10:35:52 CEST).
+  La consulta de Data API de `production` siguió devolviendo 404. No se
+  conectaron entrenamientos reales ni se modificó `production`.
+
+Artefactos locales ignorados, sin credenciales, en
+`node_modules/.cache/neon-probe/`: `storage.sql`, `rls.sql`, `api-storage.sql`,
+`api-denial.cjs` y `api-denial-results.json`. El script HTTP usa un endpoint
+limitado explícitamente a la rama comparativa ya eliminada; no debe ejecutarse
+contra `production` ni reinterpretarse como una suite de Auth completa.
+
+**Conclusión parcial:** almacenamiento SQL, aislamiento transaccional y rechazo
+de acceso HTTP no autorizado probados. Data API funcionó en la rama comparativa
+normal; no se ha confirmado que el modo `schema-only` sea la única causa del
+error anterior. Falta probar emisión de identidad válida, autorización exclusiva
+del propietario, acceso positivo por Data API y persistencia/renovación desde
+Expo/Android. Puerta A permanece abierta; no se aprueba la arquitectura ni se
+implementa fundación, sincronización o restauración con estas pruebas.
+
+### Actualización Auth y cierre remoto — 13 de octubre de 2026
+
+La sesión de investigación `20261007_170753_bb72ae` continuó después del último
+ensayo documentado arriba. Se recuperaron sus resultados históricos de Auth y
+Data API: trece comprobaciones aprobadas con dos identidades sintéticas,
+lectura/escritura legítima del propietario, aislamiento y rechazo de escrituras
+de otra identidad, altas públicas cerradas y revocación de la sesión Auth al
+salir. Recuperar una cookie en otro cliente HTTP sólo se probó en memoria; no es
+persistencia móvil. Un JWT emitido antes del logout todavía permitía leer: no se
+midió su duración ni la revocación efectiva del acceso por ese JWT.
+
+El ensayo terminó interrumpido y no quedó documentada una limpieza final.
+La consulta propia del 13 de octubre, por MCP OAuth limitado a lectura y al
+proyecto `gymregister` (`frosty-cloud-12696824`), confirmó:
+
+- Plan observado: `free_v3`. Dos ramas presentes, ambas `ready` y con compute
+  `idle`; no se ejecutó SQL ni se leyeron entrenamientos.
+- `production` (`br-spring-snow-b2fte0gh`): Neon Auth no habilitado y Data API
+  inexistente, con respuestas 404 explícitas en sus consultas de configuración.
+- `auth-data-probe-20261008` (`br-raspy-frog-b2vn0hh7`): rama de prueba todavía
+  presente; Better Auth configurado, email/password habilitado y registro público
+  cerrado; Data API `active`, esquema `public`, máximo diez filas y OpenAPI
+  deshabilitado. `idle` no significa rama ni servicios eliminados.
+- Las ramas `auth-probe-20261008` y `api-probe-data-20261008` ya no aparecen en
+  el listado; las consultas por sus IDs originales confirmaron 404 / branch not
+  found. No se atribuye una fecha ni causa de eliminación no comprobada.
+
+**Conclusión vigente:** el acceso real de identidades se probó históricamente en
+la rama aislada, pero la limpieza está pendiente y la app sigue sin integrar
+cloud. No se han validado Neon Auth, persistencia/renovación o revocación desde
+Android; la aceptación del APK local no sustituye esa puerta. Conservar estos
+resultados y decidir por separado si eliminar sólo la rama de prueba restante;
+no se ha autorizado ni ejecutado su eliminación en esta consolidación.
+
 ### Tareas posteriores
 
 - Sincronización idempotente de sesiones completadas y catálogo CUSTOM.
@@ -335,7 +610,8 @@ cerrarán tras la validación de arquitectura móvil, no por suposición.
 - [Privilegios, identidad JWT y RLS](https://neon.com/docs/data-api/access-control).
 
 Revisar estas fuentes antes de implementar: precios, cuotas, SDKs y soporte de
-frameworks pueden cambiar. No se crea infraestructura cloud en esta tarea documental.
+frameworks pueden cambiar. La preparación documental inicial no creó infraestructura;
+la provisión autorizada posterior se registra explícitamente arriba.
 
 ## Orden de reutilización desde gymCoach
 
